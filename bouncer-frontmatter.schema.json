@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/bouncer-md/bouncer-md/main/schemas/bouncer-frontmatter.schema.json",
+  "title": "Bouncer Frontmatter Schema",
+  "description": "JSON Schema for YAML frontmatter in Bouncer guardrail files (.bouncer.md). Shared schema standard with skill files for authoring consistency.",
+  "type": "object",
+  "required": ["name", "description"],
+  "additionalProperties": true,
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable identifier for this Bouncer policy. MUST be present."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Clear description of the policy intent. MUST be present."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+      "description": "Semantic version string (e.g. 0.1.0). SHOULD follow semver."
+    },
+    "author": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Author or organization responsible for this policy."
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "description": "Categorization tags for discovery and filtering (e.g. security, prompt-injection, finserv)."
+    },
+    "applies_to": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "description": "Agent names, pipeline names, or scope identifiers this policy applies to."
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"],
+      "description": "Risk severity level of the controls defined in this file."
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["immutable", "strict", "flexible"],
+      "description": "Enforcement priority. 'immutable' MUST NOT be overridden at any scope. 'strict' applies with high precedence. 'flexible' may be relaxed by higher-trust contexts."
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO 8601 date of last update (e.g. 2025-03-26)."
+    },
+    "license": {
+      "type": "string",
+      "minLength": 1,
+      "description": "SPDX license identifier or license name (e.g. MIT, Apache-2.0)."
+    }
+  },
+  "examples": [
+    {
+      "name": "Prompt Injection Defense",
+      "description": "Prevents instruction override and malicious prompt injection attempts.",
+      "version": "0.1.0",
+      "author": "bouncer-md",
+      "tags": ["security", "prompt-injection"],
+      "severity": "critical",
+      "priority": "immutable",
+      "last_updated": "2025-03-26",
+      "license": "MIT"
+    },
+    {
+      "name": "Financial Services Compliance",
+      "description": "Guardrails for finserv agents covering data handling, disclosure, and regulatory boundaries.",
+      "version": "0.1.0",
+      "author": "bouncer-md",
+      "tags": ["finserv", "compliance", "regulatory"],
+      "applies_to": ["financial-advisor-agent", "portfolio-agent"],
+      "severity": "high",
+      "priority": "strict",
+      "last_updated": "2025-03-26",
+      "license": "MIT"
+    }
+  ]
+}
