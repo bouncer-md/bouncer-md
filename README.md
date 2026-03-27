@@ -132,15 +132,11 @@ bouncer-md/
 ├── SPEC.md                          # The Bouncer specification (v0.5)
 ├── schemas/
 │   └── bouncer-frontmatter.schema.json   # JSON Schema for frontmatter validation
-├── policies/
-│   ├── security/
-│   │   └── prompt-injection.bouncer.md
-│   ├── data/
-│   │   └── secret-protection.bouncer.md
-│   └── tools/
-│       └── tool-execution-safety.bouncer.md
 ├── examples/
-│   └── bouncer.md                   # Full example with multiple controls
+│   ├── default.bouncer.md                # Baseline example with multiple controls
+│   ├── prompt-injection.bouncer.md       # Prompt injection defense
+│   ├── secret-protection.bouncer.md      # Secret and credential protection
+│   └── tool-execution-safety.bouncer.md  # Tool execution guardrails
 ├── README.md
 ├── CONTRIBUTING.md
 └── LICENSE
@@ -150,16 +146,16 @@ bouncer-md/
 
 ## Community Policies
 
-The `policies/` directory is the community library. Browse, copy, and compose domain-specific guardrails for your agents.
+The `examples/` directory is the community library. Browse, copy, and compose domain-specific guardrails for your agents.
 
 Contributions welcome. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-| Category | Examples |
+| File | Purpose |
 |---|---|
-| Security | `prompt-injection.bouncer.md`, `secret-protection.bouncer.md` |
-| Tools | `tool-execution-safety.bouncer.md`, `code-execution.bouncer.md` |
-| Industry | `finserv.bouncer.md`, `healthcare.bouncer.md` |
-| Data | `pii-handling.bouncer.md`, `retrieval-trust.bouncer.md` |
+| `default.bouncer.md` | Baseline policy — good starting point for any agent |
+| `prompt-injection.bouncer.md` | Prompt injection and instruction override defense |
+| `secret-protection.bouncer.md` | Secret and credential leakage prevention |
+| `tool-execution-safety.bouncer.md` | Tool authorization and destructive action guardrails |
 
 ---
 

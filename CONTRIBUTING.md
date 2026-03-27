@@ -53,16 +53,19 @@ The reference resolver and linter live in `resolver/`. Contributions that improv
 
 ### File placement
 
+All community policy files live in the `examples/` directory:
+
 ```
-policies/
-  security/       # injection, exfiltration, access control
-  data/           # PII, retrieval trust, output filtering
-  tools/          # tool execution, code execution, web access
-  industry/       # vertical-specific (finserv, healthcare, legal, etc.)
-  agents/         # multi-agent trust boundaries
+examples/
+  default.bouncer.md                # baseline, multi-control starting point
+  prompt-injection.bouncer.md       # security
+  secret-protection.bouncer.md      # data protection
+  tool-execution-safety.bouncer.md  # tool guardrails
+  finserv.bouncer.md                # industry example
+  ...
 ```
 
-If your policy spans categories, place it in the most relevant one.
+Use descriptive, kebab-case filenames that make the policy purpose clear at a glance.
 
 ### Required frontmatter
 
