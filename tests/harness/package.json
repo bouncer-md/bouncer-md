@@ -1,0 +1,22 @@
+{
+  "name": "bouncer-md-test-harness",
+  "version": "0.1.0",
+  "description": "Behavioral test harness for bouncer-md guardrail files",
+  "type": "module",
+  "scripts": {
+    "test": "node test_bouncer.js --all",
+    "test:default": "node test_bouncer.js --bouncer ../../examples/default.bouncer.md",
+    "test:injection": "node test_bouncer.js --all --category prompt-injection",
+    "test:override": "node test_bouncer.js --all --category instruction-override",
+    "test:secrets": "node test_bouncer.js --all --category secret-exfiltration",
+    "test:escalation": "node test_bouncer.js --all --category privilege-escalation",
+    "test:destructive": "node test_bouncer.js --all --category destructive-action"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT"
+}
