@@ -227,6 +227,74 @@ Each control block **MUST** follow this structure:
 
 ---
 
+### 5.2 Semantic Preamble
+
+For LLM-as-runtime deployments (Path A), the control block vocabulary — `Applies To`, `Detect`, `Enforce`, `Outcome` — is not formally defined to the LLM by the structure alone. Without explicit grounding, the LLM must infer the meaning of each section, which introduces interpretation variance across models and sessions.
+
+A semantic preamble provides the LLM with an explicit, consistent frame before it reads the controls. It defines the operational meaning of each section in natural language.
+
+**Recommended preamble:**
+
+```md
+## Bouncer Policy
+
+The following controls define safety and compliance guardrails for this agent session.
+All controls are active for the duration of the session and are additive — do not relax
+any control defined in a higher-scope bouncer file.
+
+For each control block:
+- **Applies To** — the input sources or content types this control monitors
+- **Detect** — the risk patterns or behaviors to identify in that content
+- **Enforce** — the required behavior when a detected pattern is confirmed
+- **Outcome** — the action to take: `block`, `redact`, `log`, `require_confirmation`, `escalate`, or `allow`
+```
+
+---
+
+### 5.2.1 Preamble Placement Options
+
+There are three valid placements for the preamble. Each has explicit tradeoffs.
+
+**Option 1: In the bouncer file (preferred)**
+
+The preamble appears immediately after the frontmatter and before the first control block.
+
+* The bouncer file is fully self-interpreting — semantics travel with the policy
+* Portability is preserved — the file works correctly with any agent, any instruction file, any runtime
+* **RECOMMENDED** for all community-contributed and shared bouncer files
+* Dropping the file into a new agent context requires no additional configuration
+
+**Option 2: In the agent or instruction file only**
+
+The preamble is placed in `agent.md`, `claude.md`, or equivalent, and omitted from the bouncer file.
+
+* Reduces duplication when a single agent owns all bouncer files in its scope
+* The bouncer file is **not self-interpreting** — it depends on the instruction file for semantic grounding
+* Portability is broken — reusing the bouncer file in a different agent context requires that agent to also carry the preamble
+* **NOT RECOMMENDED** for shared or community bouncer files
+* Acceptable only for single-agent deployments where both files are controlled by the same author
+
+**Option 3: In both (defense in depth)**
+
+The preamble appears in both the bouncer file and the instruction file.
+
+* The LLM receives semantic grounding from two sources — reduces the risk of misinterpretation in complex or multi-agent contexts
+* No portability cost — the bouncer file remains self-interpreting
+* **Cost:** the preamble consumes context window tokens twice — once from the instruction file and once from the bouncer file. This is minimal in practice given the preamble’s size, but compounds when multiple bouncer files are composed in the same session
+* As LLM runtimes mature, context deduplication — where repeated identical blocks are collapsed before inference — may eliminate this cost entirely
+* **RECOMMENDED** for production deployments and compliance-sensitive contexts where the token cost is acceptable
+
+---
+
+### 5.2.2 Requirements
+
+* The preamble **MUST NOT** redefine section semantics in ways that conflict with this specification
+* Community-contributed bouncer files **MUST** include the preamble in the bouncer file itself (Option 1 or 3)
+* Resolvers operating in Path B **MAY** inject the preamble programmatically rather than requiring it in the file
+* If injected by a resolver, the injected preamble **MUST** be semantically equivalent to the recommended text above
+
+---
+
 ## 6. Example Controls
 
 ### 6.1 Prompt Injection Defense
@@ -361,7 +429,9 @@ Implementations **SHOULD** document which enforcement layers they support.
 
 ### 8.1 Deployment Path A: Instruction File (LLM-as-Runtime)
 
-The simplest deployment path requires no code changes. Add a single reference to your `agent.md` or `claude.md` instruction file directing the LLM to locate and apply the nearest Bouncer file.
+The simplest deployment path requires no code changes. Add a reference to your `agent.md` or `claude.md` instruction file directing the LLM to locate and apply the nearest Bouncer file.
+
+The Bouncer file itself **SHOULD** include a semantic preamble (Section 5.2) so the LLM understands the operational meaning of each control block section. This is what makes the file self-interpreting — the LLM does not need to infer what `Applies To`, `Detect`, `Enforce`, and `Outcome` mean.
 
 **Example instruction in `agent.md`:**
 
@@ -369,7 +439,8 @@ The simplest deployment path requires no code changes. Add a single reference to
 ## Guardrails
 
 Locate the nearest `bouncer.md` or `*.bouncer.md` file in scope and apply all controls
-defined within it. Treat all controls as active for the duration of this session.
+defined within it. The bouncer file defines the meaning of each control section.
+Treat all controls as active for the duration of this session.
 Local bouncer files are additive — do not relax any control defined in a higher-scope
 bouncer file.
 ```
@@ -379,6 +450,7 @@ bouncer file.
 * No resolver or pipeline changes required
 * Works with any LLM that accepts instruction files
 * Enforcement fidelity depends on LLM interpretation
+* Semantic preamble in the bouncer file grounds LLM interpretation consistently
 * Suitable for MVP, prototyping, and low-risk deployments
 * A valid and intentional first-class deployment model
 
@@ -470,7 +542,7 @@ To enable inline frontmatter validation in VS Code, add the following to your `.
 ```json
 {
   "yaml.schemas": {
-    "https://raw.githubusercontent.com/bouncer-md/bouncer-md/main/schemas/bouncer-frontmatter.schema.json": [
+    "https://raw.githubusercontent.com/bouncer-md/bouncer-md/main/bouncer-frontmatter.schema.json": [
       "bouncer.md",
       "*.bouncer.md"
     ]

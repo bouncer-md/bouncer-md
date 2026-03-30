@@ -137,7 +137,7 @@ Marketplace page: https://marketplace.visualstudio.com/items?itemName=redhat.vsc
 ```json
 {
   "yaml.schemas": {
-    "https://raw.githubusercontent.com/bouncer-md/bouncer-md/main/schemas/bouncer-frontmatter.schema.json": [
+    "https://raw.githubusercontent.com/bouncer-md/bouncer-md/main/bouncer-frontmatter.schema.json": [
       "bouncer.md",
       "*.bouncer.md"
     ]
@@ -153,9 +153,8 @@ You'll get inline field validation and error reporting as you author Bouncer fil
 
 ```
 bouncer-md/
-├── SPEC.md                          # The Bouncer specification (v0.5)
-├── schemas/
-│   └── bouncer-frontmatter.schema.json   # JSON Schema for frontmatter validation
+├── SPEC.md                               # The Bouncer specification (v0.5)
+├── bouncer-frontmatter.schema.json       # JSON Schema for frontmatter validation
 ├── examples/
 │   ├── default.bouncer.md                # Baseline example with multiple controls
 │   ├── prompt-injection.bouncer.md       # Prompt injection defense
@@ -166,6 +165,7 @@ bouncer-md/
 │   ├── adversarial/                      # Attack prompt inputs, one file per threat
 │   ├── expected/                         # Expected outcomes per threat
 │   └── harness/                          # Automated test runners (Python + Node.js)
+├── .gitignore
 ├── README.md
 ├── CONTRIBUTING.md
 └── LICENSE

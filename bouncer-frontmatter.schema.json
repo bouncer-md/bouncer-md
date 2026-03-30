@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/bouncer-md/bouncer-md/main/schemas/bouncer-frontmatter.schema.json",
+  "$id": "https://raw.githubusercontent.com/bouncer-md/bouncer-md/main/bouncer-frontmatter.schema.json",
   "title": "Bouncer Frontmatter Schema",
   "description": "JSON Schema for YAML frontmatter in Bouncer guardrail files (.bouncer.md). Shared schema standard with skill files for authoring consistency.",
   "type": "object",
