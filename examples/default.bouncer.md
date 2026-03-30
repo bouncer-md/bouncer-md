@@ -6,8 +6,30 @@ author: bouncer-md
 tags: [security, baseline, prompt-injection, secrets, tools]
 severity: high
 priority: strict
-last_updated: 2026-03-26
+last_updated: 2026-03-27
 license: MIT
+---
+
+<!--
+  USAGE: Rename this file to `bouncer.md` in your project to use it as the
+  global baseline policy. Using it as `default.bouncer.md` treats it as a
+  scoped additive policy, not the global baseline.
+
+  cp examples/default.bouncer.md ./bouncer.md
+-->
+
+## Bouncer Policy
+
+The following controls define safety and compliance guardrails for this agent session.
+All controls are active for the duration of the session and are additive — do not relax
+any control defined in a higher-scope bouncer file.
+
+For each control block:
+- **Applies To** — the input sources or content types this control monitors
+- **Detect** — the risk patterns or behaviors to identify in that content
+- **Enforce** — the required behavior when a detected pattern is confirmed
+- **Outcome** — the action to take: `block`, `redact`, `log`, `require_confirmation`, `escalate`, or `allow`
+
 ---
 
 ## Control: Prompt Injection Defense
