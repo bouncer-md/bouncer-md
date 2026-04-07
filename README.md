@@ -32,6 +32,9 @@ Bouncer fills that gap.
 - **Human-authored** — same Markdown format as agent and skill files, no context switching
 - **Composable** — global baseline + scoped additive policies, closest wins
 - **Community-driven** — share and reuse domain-specific guardrails across the ecosystem
+- **Co-located** — lives next to the agent it protects, no service, no API call, no translation layer
+
+Other policy-as-code approaches like OPA require a running service, an API call from your pipeline, policy written in a domain-specific language, and translation logic between the policy decision and the LLM. Bouncer requires a markdown file in the same directory as your agent. Drop a `bouncer.md` next to your `agent.md` and it's in scope.
 
 ---
 

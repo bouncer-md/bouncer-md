@@ -19,6 +19,7 @@ Bouncer is:
 * a **policy source format**
 * **framework agnostic**
 * designed to be **compiled or interpreted** by any runtime
+* **co-located** — a Bouncer file lives next to the agent or skill it protects, requiring no external service, API call, or translation layer
 
 Bouncer is NOT:
 
@@ -29,6 +30,14 @@ Bouncer is NOT:
 * a behavior, tone, or persona definition
 
 The scope of Bouncer is **safety and compliance only**. Any control that defines agent behavior, domain expertise, tool selection logic, or formatting preferences does not belong in a Bouncer file and **MUST NOT** be included.
+
+### 1.1 Positioning
+
+Other policy-as-code approaches such as Open Policy Agent (OPA) operate at the service or API gateway layer — they require a running policy service, an API call from the agent pipeline, policy authored in a domain-specific language, and translation logic between the policy decision and the LLM's instruction context.
+
+Bouncer operates at the instruction file layer. Drop a `bouncer.md` next to an `agent.md` and it is immediately in scope — no infrastructure, no integration, no translation. The LLM consumes the policy directly as context. For production deployments requiring deterministic enforcement, the reference resolver (Section 7.2) processes the file programmatically within the same pipeline, still without requiring an external service.
+
+Both approaches are valid and complementary. Bouncer is not a replacement for API-layer policy enforcement — it is the human-readable, co-located policy artifact that defines what the rules are, regardless of where or how they are enforced.
 
 ---
 
@@ -60,6 +69,9 @@ Implementations and authors **SHOULD** adhere to the following principles:
    * tool enforcement
    * output filtering
    * audit logging
+
+6. **Co-location**
+   Bouncer files **SHOULD** reside in the same directory as the agent or skill they protect. Co-location ensures the policy travels with the agent, requires no external resolution, and is immediately discoverable by any runtime or resolver scanning the instruction file scope.
 
 ---
 
