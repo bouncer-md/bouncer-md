@@ -43,7 +43,7 @@
         "minLength": 1
       },
       "uniqueItems": true,
-      "description": "Agent names, pipeline names, or scope identifiers this policy applies to."
+      "description": "Agent names, pipeline names, or scope identifiers this policy applies to. Enforcement field — not decorative metadata. Resolvers MUST validate that the loading context matches at least one entry; a mismatch MUST cause rejection or escalation, not silent application. Omitting this field means the policy applies to all contexts."
     },
     "severity": {
       "type": "string",

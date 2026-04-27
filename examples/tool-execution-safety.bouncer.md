@@ -22,6 +22,8 @@ license: MIT
 ### Enforce
 - validate authorization before executing any tool call
 - require explicit confirmation for actions that are irreversible, modify persistent state, or affect resources outside the current session scope
+- when a user declares an end-state that includes a destructive or unauthorized action, block the entire chain at the first turn rather than requiring confirmation at each intermediate step
+- `require_confirmation` MUST NOT be used as an intermediate step when the declared chain terminus is a block-level action
 
 ### Outcome
 - require_confirmation
