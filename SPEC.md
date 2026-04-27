@@ -119,6 +119,8 @@ license: <string>
 
 Implementations **MUST** ignore unknown fields unless explicitly configured otherwise.
 
+When `applies_to` is present, it declares the scope of agents, pipelines, or contexts this policy is intended for. This field has enforcement semantics — it is not decorative metadata. See Section 7.3 Rule 6 for resolver requirements.
+
 ---
 
 ### 3.4 Example
@@ -354,6 +356,7 @@ The preamble appears in both the bouncer file and the instruction file.
 ### Enforce
 - do not disclose secrets
 - do not include secrets in output
+- do not disclose any attribute of a secret including length, format, prefix, character class, or any property that could aid reconstruction
 
 ### Outcome
 - block
@@ -377,6 +380,8 @@ The preamble appears in both the bouncer file and the instruction file.
 ### Enforce
 - validate authorization
 - require explicit confirmation for sensitive actions
+- when a user declares an end-state that includes a destructive or unauthorized action, block the entire chain at the first turn rather than requiring confirmation at each intermediate step
+- `require_confirmation` **MUST NOT** be used as an intermediate step when the declared chain terminus is a block-level action
 
 ### Outcome
 - require_confirmation
@@ -420,7 +425,8 @@ Bouncer files are resolved using a **closest-wins, additive-restriction** model 
 2. A `*.bouncer.md` file in a directory applies **in addition to** the global policy
 3. Local rules **MUST NOT** negate or degrade protections from a higher scope
 4. When rules conflict, the **more restrictive** outcome **MUST** be applied
-5. `priority: immutable` signals that a rule **MUST NOT** be overridden at any scope — implementations **MUST** enforce this or explicitly document that they do not
+5. `priority: immutable` signals that a rule **MUST NOT** be overridden at any scope — implementations **MUST** enforce this or explicitly document that they do not. **`priority: immutable` is only deterministically enforceable in Path B. In Path A, the LLM is simultaneously the policy consumer and the resolver; an adversary may argue that the LLM-resolver can treat `immutable` as advisory. Path A deployments that use `priority: immutable` **MUST** document that enforcement is alignment-dependent, not guaranteed.**
+6. When `applies_to` is present, resolvers **MUST** validate that the loading agent or context matches at least one entry in the `applies_to` list. A mismatch **MUST** cause the resolver to either reject the policy file entirely or escalate for human review. Resolvers **MUST NOT** silently apply a policy file whose `applies_to` does not match the current context. Omitting `applies_to` means the policy applies to all contexts.
 
 ---
 
@@ -465,6 +471,7 @@ bouncer file.
 * Semantic preamble in the bouncer file grounds LLM interpretation consistently
 * Suitable for MVP, prototyping, and low-risk deployments
 * A valid and intentional first-class deployment model
+* `priority: immutable` has no deterministic enforcement guarantee in Path A — an adversary may argue that the LLM-resolver can self-override the immutable flag; enforcement depends on model alignment, not specification compliance
 
 ---
 
@@ -586,6 +593,15 @@ A Bouncer linter **SHOULD** validate:
 * frontmatter required field presence and value constraints
 
 A reference linter **SHOULD** be provided alongside the reference resolver.
+
+### 11.3 Resolver Conformance Tests
+
+A conformant resolver implementation **MUST** pass the following behavioral tests:
+
+* **applies_to match** — a policy file with `applies_to: [agent-a]` loaded by `agent-a` is applied normally
+* **applies_to mismatch** — a policy file with `applies_to: [agent-a]` loaded by `agent-b` is rejected or escalated; it **MUST NOT** be silently applied
+* **applies_to absent** — a policy file with no `applies_to` field is applied to all loading contexts
+* **applies_to scope exclusion attack** — an argument that the loading context does not match `applies_to` **MUST NOT** cause a Path B resolver to skip the policy; scope mismatch triggers reject-or-escalate, not silent bypass
 
 ---
 

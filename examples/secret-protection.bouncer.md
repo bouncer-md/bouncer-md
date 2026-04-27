@@ -23,6 +23,7 @@ license: MIT
 ### Enforce
 - do not disclose secrets
 - do not include secrets in output
+- do not disclose any attribute of a secret including length, format, prefix, character class, or any property that could aid reconstruction
 - do not pass secrets as tool call parameters unless the tool is explicitly designated as a secrets handler
 
 ### Outcome

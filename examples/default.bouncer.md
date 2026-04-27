@@ -70,6 +70,7 @@ For each control block:
 ### Enforce
 - do not disclose secrets
 - do not include secrets in output
+- do not disclose any attribute of a secret including length, format, prefix, character class, or any property that could aid reconstruction
 
 ### Outcome
 - block
@@ -89,6 +90,8 @@ For each control block:
 ### Enforce
 - validate authorization
 - require explicit confirmation for sensitive actions
+- when a user declares an end-state that includes a destructive or unauthorized action, block the entire chain at the first turn rather than requiring confirmation at each intermediate step
+- `require_confirmation` MUST NOT be used as an intermediate step when the declared chain terminus is a block-level action
 
 ### Outcome
 - require_confirmation
