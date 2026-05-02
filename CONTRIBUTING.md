@@ -106,6 +106,14 @@ Every control block must include all five sections:
 
 Submissions with missing sections will not be merged.
 
+### Comments and documentation
+
+HTML comments (`<!-- ... -->`) and `### Note:` sections are the defined mechanisms for adding human-readable documentation to a bouncer file. Both are stripped by resolvers before processing and are not rendered by most Markdown tools.
+
+Comments are stripped at runtime and **MUST NOT** be relied upon for enforcement semantics. A comment containing a behavioral instruction will be ignored by the resolver.
+
+Community-contributed bouncer files **SHOULD NOT** include comments or `### Note:` sections that contain behavioral instructions or adversarial examples. The Section 9 non-goal prohibition applies to all content in the file regardless of label — a comment or note that defines agent behavior, workflow steps, or tool selection logic violates scope discipline and the contribution will be rejected.
+
 ### Validation
 
 Before submitting, validate your file against the JSON Schema. You can do this in VS Code with the YAML extension, or via CLI:

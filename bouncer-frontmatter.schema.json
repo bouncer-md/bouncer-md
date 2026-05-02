@@ -64,6 +64,11 @@
       "type": "string",
       "minLength": 1,
       "description": "SPDX license identifier or license name (e.g. MIT, Apache-2.0)."
+    },
+    "spec": {
+      "type": "string",
+      "format": "uri",
+      "description": "Advisory anchor declaring the canonical spec version this file was authored against (e.g. https://bouncer-md.github.io/bouncer-md/SPEC.md@v0.5). Resolvers MAY use this for auditing. Mismatch SHOULD be logged. This field is advisory only and MUST NOT be treated as a hard enforcement mechanism."
     }
   },
   "examples": [

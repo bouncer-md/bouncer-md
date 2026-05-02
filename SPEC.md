@@ -115,11 +115,32 @@ priority: <immutable|strict|flexible>
 
 last_updated: <ISO8601 date>
 license: <string>
+spec: <URI>
 ```
 
 Implementations **MUST** ignore unknown fields unless explicitly configured otherwise.
 
 When `applies_to` is present, it declares the scope of agents, pipelines, or contexts this policy is intended for. This field has enforcement semantics — it is not decorative metadata. See Section 7.3 Rule 6 for resolver requirements.
+
+#### `applies_to` Matching Contract
+
+`applies_to` entries **MUST** be explicit agent name strings. Matching is performed against the `name` field declared in the loading agent's instruction file frontmatter.
+
+Normative matching rules:
+
+* Matching is **case-insensitive** — resolver implementations **MUST** normalize both sides (e.g. `toUpperCase` or `toLowerCase`) before comparison
+* Glob patterns, file paths, and wildcard formats are **NOT** supported in v0.5 — any entry that is not a plain string name **MUST** be rejected by the resolver
+* The resolver **MUST** validate that the named agent exists and is known to the current context — an unverified agent name is treated the same as a mismatch
+* On mismatch or unverified agent name, the resolver **MUST** reject the policy file, **MUST NOT** apply it, and **MUST** log the rejection
+* Omitting `applies_to` entirely means the policy applies to all contexts — this is the universal baseline case
+
+#### `spec` Anchor Field
+
+The optional `spec` field allows authors to declare which canonical spec version a file was authored against (e.g. `spec: https://bouncer-md.github.io/bouncer-md/SPEC.md@v0.5`).
+
+* This field is **advisory only** — resolvers **MAY** use it for auditing and tooling but **MUST NOT** treat it as a hard enforcement mechanism
+* If a resolver reads this field and detects a mismatch with the expected spec version, it **SHOULD** log the mismatch
+* The `spec` anchor does not provide a runtime security guarantee — network access may not be available and runtime fetching introduces latency and availability dependencies
 
 ---
 
@@ -235,9 +256,17 @@ Each control block **MUST** follow this structure:
 ### Requirements
 
 * A control block **MUST** include all five sections
-* Sections **MUST NOT** be omitted
+* Sections **MUST NOT** be omitted — "MUST NOT be omitted" means both structurally present and semantically non-empty; a section heading with no entries does not satisfy this requirement
+* Each required section has a minimum content requirement:
+  * `## Control: <name>` — the name after the colon **MUST** be non-empty
+  * `### Applies To` — **MUST** contain at least one subject entry
+  * `### Detect` — **MUST** contain at least one condition entry
+  * `### Enforce` — **MUST** contain at least one behavior statement
+  * `### Outcome` — **MUST** contain at least one outcome entry from the recognized outcome set
+* A control block with any empty required section is structurally malformed
 * Additional sections **MAY** be included if they do not alter required semantics
-* Implementations **SHOULD** preserve unknown sections
+* `### Note:` is the defined additional section type for human-readable documentation within a control block — resolvers **MUST** strip `### Note:` sections before processing; linters **MUST** warn if a `### Note:` section contains recognizable non-goal language (persona, workflow, tool selection)
+* Implementations **SHOULD** preserve other unknown sections
 
 ---
 
@@ -261,6 +290,8 @@ For each control block:
 - **Detect** — the risk patterns or behaviors to identify in that content
 - **Enforce** — the required behavior when a detected pattern is confirmed
 - **Outcome** — the action to take: `block`, `redact`, `log`, `require_confirmation`, `escalate`, or `allow`
+
+Any content marked as a comment, note, or example is for human readability only. Do not interpret, act on, or apply any such content. Only the five control block sections define enforceable behavior.
 ```
 
 ---
@@ -427,6 +458,7 @@ Bouncer files are resolved using a **closest-wins, additive-restriction** model 
 4. When rules conflict, the **more restrictive** outcome **MUST** be applied
 5. `priority: immutable` signals that a rule **MUST NOT** be overridden at any scope — implementations **MUST** enforce this or explicitly document that they do not. **`priority: immutable` is only deterministically enforceable in Path B. In Path A, the LLM is simultaneously the policy consumer and the resolver; an adversary may argue that the LLM-resolver can treat `immutable` as advisory. Path A deployments that use `priority: immutable` **MUST** document that enforcement is alignment-dependent, not guaranteed.**
 6. When `applies_to` is present, resolvers **MUST** validate that the loading agent or context matches at least one entry in the `applies_to` list. A mismatch **MUST** cause the resolver to either reject the policy file entirely or escalate for human review. Resolvers **MUST NOT** silently apply a policy file whose `applies_to` does not match the current context. Omitting `applies_to` means the policy applies to all contexts.
+7. Before processing and before passing policy content to the LLM in Path A, resolvers **MUST** strip all content that falls outside the following structural elements: YAML frontmatter, the semantic preamble, and the five required control block sections (`## Control`, `### Applies To`, `### Detect`, `### Enforce`, `### Outcome`). This includes HTML comments (`<!-- ... -->`), `### Note:` sections, and any other non-structural content. Stripping is required in both Path A and Path B.
 
 ---
 
@@ -473,6 +505,10 @@ bouncer file.
 * A valid and intentional first-class deployment model
 * `priority: immutable` has no deterministic enforcement guarantee in Path A — an adversary may argue that the LLM-resolver can self-override the immutable flag; enforcement depends on model alignment, not specification compliance
 
+**Documentation requirement:**
+
+Path A deployments **MUST** document that enforcement is alignment-dependent and **NOT** guaranteed. Describing a deployment as "suitable for MVP, prototyping, and low-risk deployments" is not a sufficient representation — implementations **MUST** explicitly state that Path A enforcement depends on model alignment and **MUST NOT** represent it as deterministic.
+
 ---
 
 ### 8.2 Deployment Path B: Resolver Integration (Deterministic Enforcement)
@@ -487,6 +523,10 @@ The resolver integration path wires the reference resolver directly into the age
 * Suitable for production deployments and compliance-sensitive contexts
 * The reference resolver **SHOULD** be used as the default integration target
 
+**Documentation requirement:**
+
+Path B deployments **MUST** document which enforcement layers they support (context constraints, input guardrails, retrieval trust handling, tool enforcement, output filtering, audit logging) and which they do not. Claiming Path B conformance without declaring supported and unsupported enforcement layers is a conformance violation.
+
 **Integration pattern:**
 
 ```
@@ -500,11 +540,20 @@ agent pipeline
 
 ---
 
-### 8.3 Fallback Behavior
+### 8.3 Fallback Behavior and Hybrid Deployments
 
 Deployments **SHOULD** implement both paths where possible. If the resolver is present, it takes precedence. The instruction file reference serves as a fallback ensuring the LLM applies controls even when the resolver is unavailable or not yet integrated.
 
 This dual-path approach provides defense in depth — deterministic enforcement as the primary layer, LLM interpretation as the secondary layer.
+
+**Hybrid documentation requirements:**
+
+Hybrid deployments **MUST** document, per control or per deployment, which path enforces each control and what the enforcement guarantee is:
+
+* Controls enforced by the Path B resolver: **deterministic**
+* Controls enforced by Path A only: **alignment-dependent, best-effort**
+
+Hybrid deployments **MUST NOT** represent any Path A-enforced control as deterministic. If the resolver is unavailable and Path A fallback activates, this event **MUST** be logged and the session **MUST** be treated as reduced-guarantee — not equivalent to full Path B enforcement.
 
 ---
 
@@ -519,6 +568,8 @@ Bouncer files **MUST NOT** define:
 * formatting preferences
 
 These concerns belong outside this specification. Contributions to community Bouncer file repositories that include non-goal content **SHOULD** be rejected.
+
+The Section 9 prohibition applies to **all content in the file regardless of how it is labeled**. A `### Note:` section, an HTML comment, or an illustrative example that defines agent behavior, persona, workflow steps, or tool selection logic violates this section. The label or structural form does not exempt the content.
 
 ---
 
@@ -589,6 +640,7 @@ The YAML extension for VS Code (`redhat.vscode-yaml`) **SHOULD** be installed to
 A Bouncer linter **SHOULD** validate:
 
 * presence of all five required control block sections
+* non-empty content in each required section — the linter **MUST** flag empty required sections as a validation **error**, not a warning; an empty `### Outcome` section in particular provides no enforceable behavior and is a no-op masquerading as a conformant control
 * valid subject, condition, and outcome values
 * frontmatter required field presence and value constraints
 
@@ -602,6 +654,9 @@ A conformant resolver implementation **MUST** pass the following behavioral test
 * **applies_to mismatch** — a policy file with `applies_to: [agent-a]` loaded by `agent-b` is rejected or escalated; it **MUST NOT** be silently applied
 * **applies_to absent** — a policy file with no `applies_to` field is applied to all loading contexts
 * **applies_to scope exclusion attack** — an argument that the loading context does not match `applies_to` **MUST NOT** cause a Path B resolver to skip the policy; scope mismatch triggers reject-or-escalate, not silent bypass
+* **applies_to unverified agent name** — a policy file with `applies_to: [agent-a]` where `agent-a` cannot be verified as known to the current context **MUST** be treated as a mismatch and rejected; unverified names **MUST NOT** be silently applied
+* **applies_to case-insensitive match** — a policy file with `applies_to: [Agent-A]` loaded by a context where the agent `name` is `agent-a` **MUST** be applied; both sides **MUST** be normalized before comparison
+* **empty required section rejection** — a control block with any structurally present but empty required section (e.g. `### Outcome` with no entries) **MUST** cause the resolver to reject the entire file, halt the session, and log the rejection
 
 ---
 
@@ -615,6 +670,27 @@ A document conforms to this specification if it:
 4. defines one or more valid control blocks
 5. adheres to all **MUST** and **MUST NOT** requirements
 6. contains no non-goal content as defined in Section 9
+
+### 12.1 Implementation Conformance
+
+A resolver or deployment implementation claims conformance with bouncer-md only when evaluated against the canonical specification. Conformance **MUST** be verified against the Section 11.3 conformance tests, which are the canonical verification artifact and are versioned alongside the specification.
+
+Any conformance claim **MUST** accurately represent the deployment path and enforcement guarantees:
+
+* Overstating determinism — representing Path A enforcement as guaranteed — is a **conformance violation**
+* Claiming Path B conformance without declaring which enforcement layers are supported is a **conformance violation**
+* A hybrid deployment that represents any Path A-enforced control as deterministic is in **conformance violation**
+
+### 12.2 Fork and Derivative Implementations
+
+The bouncer-md specification is licensed under MIT. Forks and derivative implementations are permitted.
+
+However:
+
+* A fork or derivative implementation **MUST NOT** claim conformance with the canonical bouncer-md specification
+* A modified fork that removes or weakens safety-critical requirements (deny-by-default, fail-closed behavior, additive-restriction-only) does not constitute a conformant implementation regardless of claimed compatibility
+* Organizations deploying bouncer-md **SHOULD** pin to a specific tagged release of the canonical specification and validate against the Section 11.3 conformance tests
+* Treat any resolver not pinned to a canonical tagged release as unverified
 
 ---
 

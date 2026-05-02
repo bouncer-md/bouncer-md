@@ -104,6 +104,35 @@ Understanding the security properties of bouncer-md requires understanding what 
 
 ---
 
+### 8. Hybrid Enforcement Misrepresentation
+
+**Risk:** A hybrid deployment that represents Path A enforcement as deterministic overstates its security posture. In compliance-sensitive contexts, representing alignment-dependent enforcement as guaranteed is a material misrepresentation risk with potential legal and regulatory implications.
+
+**Affected path:** Hybrid (Path A + Path B).
+
+**Mitigation:**
+- Hybrid deployments MUST document which controls are Path B enforced (deterministic) vs Path A best-effort (alignment-dependent). See Section 8.3 of the spec.
+- Never represent alignment-dependent enforcement as a guarantee.
+- When the resolver is unavailable and Path A fallback activates, treat the session as reduced-guarantee and log it.
+- Any conformance claim must accurately represent the deployment path and enforcement guarantees. See Section 12.1 of the spec.
+
+---
+
+### 9. Fork and Modified Spec Deployment
+
+**Risk:** An implementation built against a modified fork of the spec may claim canonical bouncer-md conformance while having removed safety-critical requirements (deny-by-default, fail-closed behavior, additive-restriction-only). A bouncer file authored against a stripped fork looks identical to one authored against the canonical spec. Downstream consumers have no way to detect the difference without explicit verification.
+
+**Affected path:** Path A and Path B.
+
+**Mitigation:**
+- Pin your resolver implementation to a specific tagged release of the canonical spec (e.g. `v0.5`).
+- Verify the pinned version in your CI pipeline against the Section 11.3 conformance tests.
+- Treat any resolver not pinned to a canonical tagged release as unverified.
+- Use the optional `spec` frontmatter anchor (Section 3.3 of the spec) to declare which spec version a file was authored against. If a resolver detects a mismatch, it SHOULD log it.
+- Modified forks are permitted under MIT but MUST NOT claim conformance with the canonical bouncer-md specification. See Section 12.2 of the spec.
+
+---
+
 ## What bouncer-md Does Not Protect Against
 
 - **Model capability gaps.** If the underlying LLM cannot reason correctly about a control, no amount of policy authoring will compensate. Test with your target model.
