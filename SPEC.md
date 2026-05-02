@@ -55,7 +55,7 @@ Implementations and authors **SHOULD** adhere to the following principles:
    Bouncer files **MUST NOT** depend on any specific framework, SDK, or runtime.
 
 3. **Deny-by-Default Bias**
-   In ambiguous situations, implementations **SHOULD** favor restrictive outcomes.
+   In ambiguous situations, implementations **SHOULD** favor restrictive outcomes. For malformed or unparseable policy files, implementations **MUST** fail closed — silently skipping a malformed bouncer file provides no guardrails and is a security failure, not graceful degradation.
 
 4. **Additive Restriction Model**
    Policies **SHOULD** become stricter when composed. Policies **MUST NOT** weaken higher-scope protections. Local Bouncer files are additive only — they **MUST NOT** negate or degrade protections defined at a higher scope.
@@ -181,7 +181,7 @@ Recognized subjects include:
 * `secret`
 * `environment`
 
-Implementations **MAY** support additional subjects.
+Implementations **MAY** support additional subjects. Unknown subjects — those not in the recognized list above — **MUST** be preserved by the resolver and passed through; a control with an unknown subject is still applied, with the unknown subject treated as additional scope. The linter **MUST** emit a warning for unknown subjects, not an error.
 
 ---
 
@@ -213,7 +213,7 @@ Examples include:
 * `cross_tenant_access`
 * `untrusted_instruction_embedding`
 
-Implementations **MAY** define additional conditions.
+Implementations **MAY** define additional conditions. Unknown conditions — those not in the examples above — **MUST** be preserved by the resolver and passed through; a control with an unknown condition is still applied. The linter **MUST** emit a warning for unknown conditions, not an error.
 
 ---
 
@@ -230,6 +230,36 @@ Outcomes define required responses:
 * `log`
 
 Multiple outcomes **MAY** be combined.
+
+**Outcomes are a closed set in v0.5.** Unknown outcomes **MUST NOT** be silently ignored — silent ignore could resolve to `allow` by omission, which is a security failure. If a resolver encounters an unknown outcome, it **MUST** apply the capability fallback rule (see below). The linter **MUST** emit an error for unknown outcomes, not a warning.
+
+#### Normative Outcome Precedence (v0.5 MVP)
+
+The normative precedence order for resolving conflicting outcomes is:
+
+```text
+block > require_confirmation > allow
+```
+
+When rules conflict, the most restrictive outcome in this table **MUST** be applied. This is the sole deterministic authority for "more restrictive" as used in Section 7.3 Rule 4.
+
+`redact`, `escalate`, and `require_higher_trust` are valid outcome terms authors **MAY** specify, but their precedence ordering relative to each other and to the core table is deferred to a future version.
+
+`escalate` is explicitly deferred to a future version and **MUST NOT** be used as a substitute for reject-or-halt behavior in v0.5 conformant resolvers. See Section 7.3 Rule 6.
+
+#### `log` is Non-Competitive and Always Additive
+
+`log` does not participate in precedence resolution. It **MUST** always fire alongside whichever outcome wins. It is never compared against other outcomes.
+
+Resolver capability requirement for `log`:
+
+* Resolvers that support `log` **MUST** implement a logging mechanism and **MUST** document that they do so
+* If a resolver does not implement logging, `log` outcomes are silently no-ops — this **MUST** be documented by the resolver
+* Authors **SHOULD NOT** rely on `log` for audit compliance unless the resolver explicitly declares logging support
+
+#### Capability Fallback
+
+If the winning outcome is not supported by the runtime, the resolver **MUST** fall back to the next most restrictive outcome it supports. Fallback **MUST** be logged if logging is available. `block` is the universal fallback floor — all resolvers **MUST** support it.
 
 ---
 
@@ -264,9 +294,11 @@ Each control block **MUST** follow this structure:
   * `### Enforce` — **MUST** contain at least one behavior statement
   * `### Outcome` — **MUST** contain at least one outcome entry from the recognized outcome set
 * A control block with any empty required section is structurally malformed
+* Control names (`## Control: <name>`) are **human-readable labels, not semantic identifiers** — resolvers **MUST NOT** use control names as merge keys or for deduplication across composed files
 * Additional sections **MAY** be included if they do not alter required semantics
+* Additional sections **MUST NOT** participate in enforcement — resolvers **MUST NOT** execute any enforcement behavior based on an unknown additional section; only the five required sections are the basis for enforcement decisions
 * `### Note:` is the defined additional section type for human-readable documentation within a control block — resolvers **MUST** strip `### Note:` sections before processing; linters **MUST** warn if a `### Note:` section contains recognizable non-goal language (persona, workflow, tool selection)
-* Implementations **SHOULD** preserve other unknown sections
+* Resolvers **MUST** preserve other unknown additional sections and pass them through opaquely; resolvers **MAY** expose preserved additional sections as structured metadata to downstream consumers (e.g. for observability or audit logging) and **SHOULD** document whether they do so
 
 ---
 
@@ -457,8 +489,11 @@ Bouncer files are resolved using a **closest-wins, additive-restriction** model 
 3. Local rules **MUST NOT** negate or degrade protections from a higher scope
 4. When rules conflict, the **more restrictive** outcome **MUST** be applied
 5. `priority: immutable` signals that a rule **MUST NOT** be overridden at any scope — implementations **MUST** enforce this or explicitly document that they do not. **`priority: immutable` is only deterministically enforceable in Path B. In Path A, the LLM is simultaneously the policy consumer and the resolver; an adversary may argue that the LLM-resolver can treat `immutable` as advisory. Path A deployments that use `priority: immutable` **MUST** document that enforcement is alignment-dependent, not guaranteed.**
-6. When `applies_to` is present, resolvers **MUST** validate that the loading agent or context matches at least one entry in the `applies_to` list. A mismatch **MUST** cause the resolver to either reject the policy file entirely or escalate for human review. Resolvers **MUST NOT** silently apply a policy file whose `applies_to` does not match the current context. Omitting `applies_to` means the policy applies to all contexts.
+6. When `applies_to` is present, resolvers **MUST** validate that the loading agent or context matches at least one entry in the `applies_to` list. Mismatch detection **MUST** occur at policy load time — the agent **MUST NOT** execute any actions against an unverified or mismatched policy. On mismatch, the resolver **MUST**: (1) reject the policy file, (2) throw a catchable exception, (3) halt the session, and (4) log the mismatch if logging is available. The exception **MUST** be catchable by the calling agent or orchestrator to allow surfacing a user-facing error. Resolvers **MUST NOT** silently apply a policy file whose `applies_to` does not match the current context. Omitting `applies_to` means the policy applies to all contexts.
 7. Before processing and before passing policy content to the LLM in Path A, resolvers **MUST** strip all content that falls outside the following structural elements: YAML frontmatter, the semantic preamble, and the five required control block sections (`## Control`, `### Applies To`, `### Detect`, `### Enforce`, `### Outcome`). This includes HTML comments (`<!-- ... -->`), `### Note:` sections, and any other non-structural content. Stripping is required in both Path A and Path B.
+8. File discovery follows the normative algorithm defined in Section 10.1. Resolvers **MUST** implement that algorithm and **MUST NOT** treat discovery as implementation-specific.
+9. Control names (`## Control: <name>`) are human-readable labels, not semantic identifiers. Resolvers **MUST NOT** use control names as merge keys or for deduplication across composed files. Duplicate control names across composed files **MUST** be treated as independent controls — both **MUST** be evaluated. If duplicates produce conflicting outcomes, the normative precedence table (Section 4.4) applies. Conflicts **MUST** be logged if logging is available, including which controls were in conflict, which outcome was selected, and which file each control came from.
+10. Resolvers **MUST** fail closed on malformed files. A file is malformed if it is unparseable, missing required frontmatter fields, contains zero valid controls, or contains any control with a missing or empty required section. A malformed `*.bouncer.md` causes rejection of that file only — higher-scope files continue to apply. Resolvers **MUST NOT** apply valid controls from a partially malformed file — partial validity is a potential probe vector. All file rejections **MUST** be logged if logging is available, including the file path, the reason for rejection, and the session halt decision. See Section 2.3.
 
 ---
 
@@ -581,11 +616,32 @@ Bouncer files **MAY** exist as:
 * `*.bouncer.md` — scoped additive policy, applied in addition to global
 * embedded within other instruction files
 
-### 10.1 Composition Behavior
+### 10.1 Composition Behavior and Discovery Algorithm
 
 * `*.bouncer.md` files are **additive only**
 * Local files **MUST NOT** reduce or override protections from `bouncer.md`
-* File discovery and scope precedence beyond this are implementation-specific
+
+#### Scope root
+
+The scope root is the directory containing the loading agent's instruction file. Discovery is anchored to the agent, not the repository root or a runtime-defined path.
+
+#### Discovery algorithm
+
+Resolvers **MUST** implement the following algorithm:
+
+1. **Global baseline** (`bouncer.md`) — walk upward from the scope root toward the filesystem root. The first `bouncer.md` found is the global baseline. Stop walking on first match. Only one global baseline is applied.
+2. **Scoped additive files** (`*.bouncer.md`) — collected from the scope root directory only. No ancestor walking for scoped files.
+3. All `*.bouncer.md` files in the scope root are applied alongside the global baseline.
+
+#### Ordering and determinism
+
+* Multiple `*.bouncer.md` files in the same directory **MUST** be applied in case-insensitive alphabetical order by filename
+* Ordering **MUST** be deterministic — resolvers **MUST NOT** apply scoped files in filesystem or OS-dependent order
+
+#### On missing global baseline
+
+* If no `bouncer.md` is found after walking to the filesystem root, only scoped files apply
+* If neither a global baseline nor any scoped files are found, no policy is applied and this **MUST** be logged
 
 ---
 
@@ -641,6 +697,13 @@ A Bouncer linter **SHOULD** validate:
 
 * presence of all five required control block sections
 * non-empty content in each required section — the linter **MUST** flag empty required sections as a validation **error**, not a warning; an empty `### Outcome` section in particular provides no enforceable behavior and is a no-op masquerading as a conformant control
+* duplicate control names within a single file — the linter **MUST** surface this as a validation **error**, not a warning
+* unknown subjects — the linter **MUST** emit a **warning**, not an error; unknown subjects are additional scope and are preserved by the resolver
+* unknown conditions — the linter **MUST** emit a **warning**, not an error; unknown conditions are preserved by the resolver
+* unknown outcomes — the linter **MUST** emit an **error**; unknown outcomes in v0.5 are invalid and trigger resolver capability fallback
+* additional sections using a required section heading (`### Applies To`, `### Detect`, `### Enforce`, `### Outcome`) — the linter **MUST** emit a validation **error**; this is either an authoring mistake or a spoofing attempt
+* other unknown additional sections — the linter **MUST** emit a **warning**; unknown additional sections are preserved and passed through by the resolver
+* any structurally malformed control (missing or empty required sections) — partial validity **MUST** be rejected; the linter **MUST** flag the entire file, not just the malformed control
 * valid subject, condition, and outcome values
 * frontmatter required field presence and value constraints
 
@@ -656,7 +719,18 @@ A conformant resolver implementation **MUST** pass the following behavioral test
 * **applies_to scope exclusion attack** — an argument that the loading context does not match `applies_to` **MUST NOT** cause a Path B resolver to skip the policy; scope mismatch triggers reject-or-escalate, not silent bypass
 * **applies_to unverified agent name** — a policy file with `applies_to: [agent-a]` where `agent-a` cannot be verified as known to the current context **MUST** be treated as a mismatch and rejected; unverified names **MUST NOT** be silently applied
 * **applies_to case-insensitive match** — a policy file with `applies_to: [Agent-A]` loaded by a context where the agent `name` is `agent-a` **MUST** be applied; both sides **MUST** be normalized before comparison
+* **applies_to mismatch exception and halt** — on `applies_to` mismatch, the resolver **MUST** throw a catchable exception and halt the session; the caller **MUST** be able to catch the exception and surface a user-facing error; the resolver **MUST NOT** proceed with a default-allow state
 * **empty required section rejection** — a control block with any structurally present but empty required section (e.g. `### Outcome` with no entries) **MUST** cause the resolver to reject the entire file, halt the session, and log the rejection
+* **partial validity rejection** — a file containing one valid control and one malformed control (missing or empty required section) **MUST** be rejected entirely; the resolver **MUST NOT** apply the valid control from a partially malformed file
+* **invalid YAML rejection** — an unparseable bouncer file **MUST** cause the resolver to reject the file, halt the session, and log the rejection; it **MUST NOT** proceed with a default-allow state
+* **zero valid controls rejection** — a file with valid frontmatter but zero valid controls **MUST** be rejected; it **MUST NOT** be treated as equivalent to "no policy found"
+* **missing global baseline** — if no `bouncer.md` is found walking to the filesystem root, only scoped `*.bouncer.md` files apply; if no files of either type are found, no policy is applied and this **MUST** be logged
+* **discovery ancestor walking** — the global `bouncer.md` is found by walking upward from the scope root; a `bouncer.md` in a parent directory applies as the global baseline when none exists in the scope root
+* **scoped file alphabetical ordering** — when multiple `*.bouncer.md` files exist in the scope root, they **MUST** be applied in case-insensitive alphabetical order; OS-dependent ordering **MUST NOT** be used
+* **duplicate control name across files** — two composed files both containing `## Control: Access Control` **MUST** have both controls evaluated independently; the resolver **MUST NOT** merge or deduplicate them; conflicting outcomes resolve via the normative precedence table and **MUST** be logged
+* **unknown outcome capability fallback** — a control with an unknown outcome **MUST NOT** be silently ignored; the resolver **MUST** fall back to the next most restrictive known outcome in the precedence table and log the fallback
+* **outcome precedence: block beats require_confirmation** — when two controls apply and one yields `block` and the other `require_confirmation`, the resolved outcome **MUST** be `block`
+* **log is additive** — when the winning outcome is `block`, any `log` outcome from any applicable control **MUST** also fire; `log` is never suppressed by a more restrictive outcome winning
 
 ---
 
