@@ -14,7 +14,7 @@ It is not an agent instruction file. It is not a skill. It is not a prompt templ
 
 Bouncer is **safety and compliance only** — a clear separation that makes guardrails reusable, auditable, and portable across any agent framework or runtime.
 
-```
+```text
 agent.md     → behavior
 skill.md     → capabilities
 bouncer.md   → guardrails  ← this is Bouncer
@@ -129,13 +129,13 @@ cp examples/default.bouncer.md ./bouncer.md
 
 ## VS Code Validation
 
-**1. Install the YAML extension**
+### 1. Install the YAML extension
 
 [Install redhat.vscode-yaml](vscode:extension/redhat.vscode-yaml) — or search `redhat.vscode-yaml` in the VS Code Extensions panel.
 
-Marketplace page: https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml
+Marketplace page: [redhat.vscode-yaml](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)
 
-**2. Add schema wiring to `.vscode/settings.json`**
+### 2. Add schema wiring to `.vscode/settings.json`
 
 ```json
 {
@@ -154,7 +154,7 @@ You'll get inline field validation and error reporting as you author Bouncer fil
 
 ## Repository Structure
 
-```
+```text
 bouncer-md/
 ├── SPEC.md                               # The Bouncer specification (v0.7)
 ├── bouncer-frontmatter.schema.json       # JSON Schema for frontmatter validation
