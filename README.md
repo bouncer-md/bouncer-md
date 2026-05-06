@@ -14,7 +14,7 @@ It is not an agent instruction file. It is not a skill. It is not a prompt templ
 
 Bouncer is **safety and compliance only** — a clear separation that makes guardrails reusable, auditable, and portable across any agent framework or runtime.
 
-```
+```text
 agent.md     → behavior
 skill.md     → capabilities
 bouncer.md   → guardrails  ← this is Bouncer
@@ -129,13 +129,13 @@ cp examples/default.bouncer.md ./bouncer.md
 
 ## VS Code Validation
 
-**1. Install the YAML extension**
+### 1. Install the YAML extension
 
 [Install redhat.vscode-yaml](vscode:extension/redhat.vscode-yaml) — or search `redhat.vscode-yaml` in the VS Code Extensions panel.
 
-Marketplace page: https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml
+Marketplace page: [redhat.vscode-yaml](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)
 
-**2. Add schema wiring to `.vscode/settings.json`**
+### 2. Add schema wiring to `.vscode/settings.json`
 
 ```json
 {
@@ -154,9 +154,9 @@ You'll get inline field validation and error reporting as you author Bouncer fil
 
 ## Repository Structure
 
-```
+```text
 bouncer-md/
-├── SPEC.md                               # The Bouncer specification (v0.5)
+├── SPEC.md                               # The Bouncer specification (v0.7)
 ├── bouncer-frontmatter.schema.json       # JSON Schema for frontmatter validation
 ├── examples/
 │   ├── default.bouncer.md                # Baseline example with multiple controls
@@ -225,13 +225,13 @@ Contributions welcome. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 The full specification is in [SPEC.md](./SPEC.md).
 
-Current version: **v0.5**
+Current version: **v0.7**
 
 ---
 
 ## Ecosystem
 
-Bouncer is designed to complement agent observability standards. Bouncer defines what rules exist and when they fire. [OpenTelemetry GenAI Semantic Conventions](https://github.com/open-telemetry/semantic-conventions) define whether they fired and what happened.
+Bouncer is designed to complement agent observability standards. Bouncer defines what rules exist and when they fire. [SPEC.md Section 8.4](./SPEC.md) defines the normative telemetry model — the span and log event structure resolvers should emit so that observability layers, including [OpenTelemetry GenAI Semantic Conventions](https://github.com/open-telemetry/semantic-conventions), can surface whether guardrails fired and what happened.
 
 ---
 

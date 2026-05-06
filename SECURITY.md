@@ -17,6 +17,7 @@ Understanding the security properties of bouncer-md requires understanding what 
 **Affected path:** Path A and Path B.
 
 **Mitigation:**
+
 - Security through obscurity is not a viable alternative. The resolver is the correct mitigation.
 - Path B deterministic enforcement removes LLM interpretation from the enforcement loop. An attacker knowing the vocabulary does not help them bypass a programmatic resolver.
 - Add domain-specific adversarial test cases beyond the public test suite. The public suite in `tests/adversarial/` establishes a baseline — it should not be your entire coverage.
@@ -30,6 +31,7 @@ Understanding the security properties of bouncer-md requires understanding what 
 **Affected path:** Path A only.
 
 **Mitigation:**
+
 - This is a documented and accepted limitation of Path A. Controls are instructions, not guarantees.
 - Include the preamble in both the bouncer file and the agent instruction file (Option 3 in Section 5.2.1 of the spec) for defense in depth.
 - For compliance-sensitive or production deployments, use Path B.
@@ -44,6 +46,7 @@ Understanding the security properties of bouncer-md requires understanding what 
 **Affected path:** Path A and Path B.
 
 **Mitigation:**
+
 - Treat `bouncer.md` as a security artifact. It belongs in version control and should be subject to code review the same way security configurations are reviewed.
 - Use the test suite to validate baseline controls before merging changes to `bouncer.md`.
 - For regulated environments, require sign-off on baseline policy changes from a security or compliance owner.
@@ -57,6 +60,7 @@ Understanding the security properties of bouncer-md requires understanding what 
 **Affected path:** Path B only.
 
 **Mitigation:**
+
 - Treat the resolver as security-critical middleware. Apply the same review and testing standards you would to an authentication library.
 - Emit resolver decisions to your observability pipeline. Every control evaluation — pass or block — should produce a telemetry event. Absence of events is itself a signal.
 - Periodically validate resolver behavior against the test suite in production, not just at build time.
@@ -71,6 +75,7 @@ Understanding the security properties of bouncer-md requires understanding what 
 **Affected path:** Path B only.
 
 **Mitigation:**
+
 - Resolver file discovery scope **MUST** be explicitly configured to trusted, version-controlled paths only.
 - Never load bouncer files from locations that can be written to by untrusted parties.
 - Validate the integrity of bouncer files at load time — hash verification against a known-good manifest is recommended for production deployments.
@@ -84,6 +89,7 @@ Understanding the security properties of bouncer-md requires understanding what 
 **Affected path:** Path A and Path B.
 
 **Mitigation:**
+
 - The public test suite establishes a baseline floor, not a ceiling.
 - Teams **SHOULD** maintain a private adversarial test suite covering the specific threat surface of their deployment.
 - Rotate and extend adversarial inputs over time. A static test suite becomes less effective as attackers adapt.
@@ -97,6 +103,7 @@ Understanding the security properties of bouncer-md requires understanding what 
 **Affected path:** Path A only.
 
 **Mitigation:**
+
 - Keep bouncer files focused and concise. A 500-line bouncer file is a red flag.
 - Place the bouncer file reference early in your agent instruction file, not at the end.
 - Use `priority: immutable` on critical controls to signal their importance explicitly.
@@ -111,6 +118,7 @@ Understanding the security properties of bouncer-md requires understanding what 
 **Affected path:** Hybrid (Path A + Path B).
 
 **Mitigation:**
+
 - Hybrid deployments MUST document which controls are Path B enforced (deterministic) vs Path A best-effort (alignment-dependent). See Section 8.3 of the spec.
 - Never represent alignment-dependent enforcement as a guarantee.
 - When the resolver is unavailable and Path A fallback activates, treat the session as reduced-guarantee and log it.
@@ -125,7 +133,8 @@ Understanding the security properties of bouncer-md requires understanding what 
 **Affected path:** Path A and Path B.
 
 **Mitigation:**
-- Pin your resolver implementation to a specific tagged release of the canonical spec (e.g. `v0.5`).
+
+- Pin your resolver implementation to a specific tagged release of the canonical spec (e.g. `v0.7`).
 - Verify the pinned version in your CI pipeline against the Section 11.3 conformance tests.
 - Treat any resolver not pinned to a canonical tagged release as unverified.
 - Use the optional `spec` frontmatter anchor (Section 3.3 of the spec) to declare which spec version a file was authored against. If a resolver detects a mismatch, it SHOULD log it.
