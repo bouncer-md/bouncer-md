@@ -125,7 +125,7 @@ Understanding the security properties of bouncer-md requires understanding what 
 **Affected path:** Path A and Path B.
 
 **Mitigation:**
-- Pin your resolver implementation to a specific tagged release of the canonical spec (e.g. `v0.5`).
+- Pin your resolver implementation to a specific tagged release of the canonical spec (e.g. `v0.7`).
 - Verify the pinned version in your CI pipeline against the Section 11.3 conformance tests.
 - Treat any resolver not pinned to a canonical tagged release as unverified.
 - Use the optional `spec` frontmatter anchor (Section 3.3 of the spec) to declare which spec version a file was authored against. If a resolver detects a mismatch, it SHOULD log it.

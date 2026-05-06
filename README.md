@@ -156,7 +156,7 @@ You'll get inline field validation and error reporting as you author Bouncer fil
 
 ```
 bouncer-md/
-├── SPEC.md                               # The Bouncer specification (v0.5)
+├── SPEC.md                               # The Bouncer specification (v0.7)
 ├── bouncer-frontmatter.schema.json       # JSON Schema for frontmatter validation
 ├── examples/
 │   ├── default.bouncer.md                # Baseline example with multiple controls
@@ -225,13 +225,13 @@ Contributions welcome. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 The full specification is in [SPEC.md](./SPEC.md).
 
-Current version: **v0.5**
+Current version: **v0.7**
 
 ---
 
 ## Ecosystem
 
-Bouncer is designed to complement agent observability standards. Bouncer defines what rules exist and when they fire. [OpenTelemetry GenAI Semantic Conventions](https://github.com/open-telemetry/semantic-conventions) define whether they fired and what happened.
+Bouncer is designed to complement agent observability standards. Bouncer defines what rules exist and when they fire. [SPEC.md Section 8.4](./SPEC.md) defines the normative telemetry model — the span and log event structure resolvers should emit so that observability layers, including [OpenTelemetry GenAI Semantic Conventions](https://github.com/open-telemetry/semantic-conventions), can surface whether guardrails fired and what happened.
 
 ---
 
