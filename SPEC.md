@@ -129,14 +129,14 @@ When `applies_to` is present, it declares the scope of agents, pipelines, or con
 Normative matching rules:
 
 * Matching is **case-insensitive** — resolver implementations **MUST** normalize both sides (e.g. `toUpperCase` or `toLowerCase`) before comparison
-* Glob patterns, file paths, and wildcard formats are **NOT** supported in v0.5 — any entry that is not a plain string name **MUST** be rejected by the resolver
+* Glob patterns, file paths, and wildcard formats are **NOT** supported in v0.7 — any entry that is not a plain string name **MUST** be rejected by the resolver
 * The resolver **MUST** validate that the named agent exists and is known to the current context — an unverified agent name is treated the same as a mismatch
 * On mismatch or unverified agent name, the resolver **MUST** reject the policy file, **MUST NOT** apply it, and **MUST** log the rejection
 * Omitting `applies_to` entirely means the policy applies to all contexts — this is the universal baseline case
 
 #### `spec` Anchor Field
 
-The optional `spec` field allows authors to declare which canonical spec version a file was authored against (e.g. `spec: https://bouncer-md.github.io/bouncer-md/SPEC.md@v0.5`).
+The optional `spec` field allows authors to declare which canonical spec version a file was authored against (e.g. `spec: https://bouncer-md.github.io/bouncer-md/SPEC.md@v0.7`).
 
 * This field is **advisory only** — resolvers **MAY** use it for auditing and tooling but **MUST NOT** treat it as a hard enforcement mechanism
 * If a resolver reads this field and detects a mismatch with the expected spec version, it **SHOULD** log the mismatch
@@ -231,9 +231,9 @@ Outcomes define required responses:
 
 Multiple outcomes **MAY** be combined.
 
-**Outcomes are a closed set in v0.5.** Unknown outcomes **MUST NOT** be silently ignored — silent ignore could resolve to `allow` by omission, which is a security failure. If a resolver encounters an unknown outcome, it **MUST** apply the capability fallback rule (see below). The linter **MUST** emit an error for unknown outcomes, not a warning.
+**Outcomes are a closed set in v0.7.** Unknown outcomes **MUST NOT** be silently ignored — silent ignore could resolve to `allow` by omission, which is a security failure. If a resolver encounters an unknown outcome, it **MUST** apply the capability fallback rule (see below). The linter **MUST** emit an error for unknown outcomes, not a warning.
 
-#### Normative Outcome Precedence (v0.5 MVP)
+#### Normative Outcome Precedence (v0.7)
 
 The normative precedence order for resolving conflicting outcomes is:
 
@@ -245,7 +245,7 @@ When rules conflict, the most restrictive outcome in this table **MUST** be appl
 
 `redact`, `escalate`, and `require_higher_trust` are valid outcome terms authors **MAY** specify, but their precedence ordering relative to each other and to the core table is deferred to a future version.
 
-`escalate` is explicitly deferred to a future version and **MUST NOT** be used as a substitute for reject-or-halt behavior in v0.5 conformant resolvers. See Section 7.3 Rule 6.
+`escalate` is explicitly deferred to a future version and **MUST NOT** be used as a substitute for reject-or-halt behavior in v0.7 conformant resolvers. See Section 7.3 Rule 6.
 
 #### `log` is Non-Competitive and Always Additive
 
@@ -785,7 +785,7 @@ A Bouncer linter **SHOULD** validate:
 * duplicate control names within a single file — the linter **MUST** surface this as a validation **error**, not a warning
 * unknown subjects — the linter **MUST** emit a **warning**, not an error; unknown subjects are additional scope and are preserved by the resolver
 * unknown conditions — the linter **MUST** emit a **warning**, not an error; unknown conditions are preserved by the resolver
-* unknown outcomes — the linter **MUST** emit an **error**; unknown outcomes in v0.5 are invalid and trigger resolver capability fallback
+* unknown outcomes — the linter **MUST** emit an **error**; unknown outcomes in v0.7 are invalid and trigger resolver capability fallback
 * additional sections using a required section heading (`### Applies To`, `### Detect`, `### Enforce`, `### Outcome`) — the linter **MUST** emit a validation **error**; this is either an authoring mistake or a spoofing attempt
 * other unknown additional sections — the linter **MUST** emit a **warning**; unknown additional sections are preserved and passed through by the resolver
 * any structurally malformed control (missing or empty required sections) — partial validity **MUST** be rejected; the linter **MUST** flag the entire file, not just the malformed control
