@@ -1,4 +1,4 @@
-# Bouncer Specification v0.5
+# Bouncer Specification v0.7
 
 *A framework-agnostic guardrail and trust policy specification for agentic systems*
 
@@ -256,6 +256,7 @@ Resolver capability requirement for `log`:
 * Resolvers that support `log` **MUST** implement a logging mechanism and **MUST** document that they do so
 * If a resolver does not implement logging, `log` outcomes are silently no-ops — this **MUST** be documented by the resolver
 * Authors **SHOULD NOT** rely on `log` for audit compliance unless the resolver explicitly declares logging support
+* When `log` fires, resolvers **SHOULD** emit a `bouncer.guardrail.fired` log event per the model defined in Section 8.4
 
 #### Capability Fallback
 
@@ -592,6 +593,90 @@ Hybrid deployments **MUST NOT** represent any Path A-enforced control as determi
 
 ---
 
+### 8.4 Resolver Observability
+
+Resolvers **SHOULD** emit structured telemetry to make guardrail behavior visible to operators. This section defines the normative span model, log event model, and attribute namespace for resolver telemetry.
+
+#### Span model
+
+One span **MUST** be emitted per resolver invocation.
+
+**Span name:** `bouncer.resolve`
+
+**Span kind:** `INTERNAL`
+
+**Required attributes:**
+
+| Attribute | Type | Description |
+| --- | --- | --- |
+| `bouncer.policy.file` | string | Path or identifier of the bouncer file evaluated |
+| `bouncer.policy.version` | string | Version of the policy file itself (from `version` frontmatter field if present) |
+| `bouncer.policy.spec` | string | Spec URI the file was authored against (from `spec` frontmatter field if present) |
+| `bouncer.decision` | string enum | `allow`, `block`, `redact`, `require_confirmation` |
+| `bouncer.execution_point` | string enum | Where in the pipeline the resolver fired — **MUST** be one of: `pre_invocation`, `tool_call`, `agent_handoff`, `post_generation` |
+
+`bouncer.execution_point` is a **normative closed enumeration** in v0.7. Resolvers **MUST NOT** emit values outside this set. Future versions of the spec may extend the set; resolvers **SHOULD** be designed so that adding a new value requires only a string change.
+
+**Optional attributes (populated on guardrail firing):**
+
+| Attribute | Type | Description |
+| --- | --- | --- |
+| `bouncer.rule.name` | string | Human-readable control name that triggered |
+| `bouncer.rule.subject` | string | Subject that matched (e.g. `user_input`, `tool_result`) |
+| `bouncer.rule.condition` | string | Condition that matched (e.g. `prompt_injection`) |
+| `bouncer.rule.outcome` | string | Outcome applied (e.g. `block`) |
+| `bouncer.policy.priority` | string | `immutable`, `strict`, or `flexible` from frontmatter |
+| `bouncer.path` | string enum | `path_a` or `path_b` — which deployment path enforced the control |
+
+**GenAI SemConv attributes to use where applicable:**
+
+| SemConv attribute | Use case |
+| --- | --- |
+| `gen_ai.system` | The LLM system the agent is running on |
+| `gen_ai.operation.name` | The agent operation being guarded |
+| `gen_ai.agent.id` | Agent identifier (when available from the framework) |
+
+Resolvers **MUST** use `gen_ai.*` SemConv attributes when an existing attribute covers the semantic. Resolvers **MUST NOT** define a `bouncer.*` attribute for something SemConv already owns.
+
+The `bouncer.resolve` span **SHOULD** be a child of the active agent or framework span so traces connect end-to-end. Resolvers **MUST** document how to wire parent context if the framework does not propagate it automatically.
+
+#### Log event model
+
+Structured log events fire on guardrail activation only — not on every resolver invocation.
+
+**Log event name:** `bouncer.guardrail.fired`
+
+**Minimum required fields:**
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `timestamp` | ISO 8601 | When the guardrail fired |
+| `bouncer.rule.name` | string | Control name |
+| `bouncer.rule.subject` | string | Subject that triggered it |
+| `bouncer.rule.condition` | string | Condition matched |
+| `bouncer.rule.outcome` | string | Outcome applied |
+| `bouncer.policy.file` | string | Source policy file |
+| `bouncer.session.id` | string | Agent session identifier |
+| `bouncer.agent.id` | string | Agent identifier |
+
+Log events **SHOULD** be attached to the active `bouncer.resolve` span via `span.add_event("bouncer.guardrail.fired", attributes)` when a span is present.
+
+#### Privacy requirement
+
+Input content (prompt text, tool results, retrieved content) **MUST NOT** be included in log events or span attributes by default. Resolvers **MAY** provide an opt-in `bouncer.debug.include_content` configuration flag. When enabled, the resolver **MUST** document that content may appear in telemetry and **MUST** warn that this flag **MUST NOT** be enabled in production.
+
+#### Resolver documentation requirements
+
+* Resolvers that support telemetry **MUST** document which attributes they emit
+* Resolvers that do not support telemetry **MUST** document this explicitly
+* Resolvers **MUST** use the `bouncer.*` namespace for resolver-specific attributes not covered by SemConv
+
+#### Relationship to OTel GenAI SIG
+
+The `bouncer.*` attribute namespace is intended as a contribution to the GenAI SIG conversation, not a permanent fork. Attributes that SemConv eventually ratifies for guardrail and policy evaluation semantics **SHOULD** replace the corresponding `bouncer.*` attributes in a future spec version. Resolvers **SHOULD** be designed so that attribute key renaming is the only migration required when that happens.
+
+---
+
 ## 9. Non-Goals
 
 Bouncer files **MUST NOT** define:
@@ -782,7 +867,7 @@ Bouncer is designed to support a community repository of reusable, domain-specif
 
 Community contributions **MUST** comply with the scope discipline defined in Section 9. Bouncer files are **safety and compliance artifacts only**.
 
-The Bouncer specification and ecosystem are designed to complement emerging agent observability standards including OpenTelemetry GenAI Semantic Conventions. Bouncer defines what rules exist and when they fire. Observability layers define whether they fired and what happened.
+The Bouncer specification and ecosystem are designed to complement emerging agent observability standards including OpenTelemetry GenAI Semantic Conventions. Bouncer defines what rules exist and when they fire. Section 8.4 defines the normative telemetry model — the span and log event structure resolvers SHOULD emit so that observability layers can surface whether guardrails fired and what happened.
 
 ---
 
