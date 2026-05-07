@@ -1,0 +1,64 @@
+name: Resolver CI
+
+on:
+  push:
+    paths:
+      - "resolver/**"
+      - ".github/workflows/resolver-ci.yml"
+  pull_request:
+    paths:
+      - "resolver/**"
+      - ".github/workflows/resolver-ci.yml"
+
+jobs:
+  lint-and-typecheck:
+    name: Lint · Typecheck
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: resolver
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: resolver/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+  test:
+    # Tests are expected to fail during Phase 0 (test-first development).
+    # The step exits 0 regardless so the check stays green; full output is
+    # visible in the CI logs. Promoted to a true pass/fail check in Phase 1.
+    name: Test (informational — Phase 0)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: resolver
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: resolver/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test || true

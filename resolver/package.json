@@ -1,0 +1,36 @@
+{
+  "name": "@bouncer-md/resolver",
+  "version": "0.1.0",
+  "description": "Reference resolver for the bouncer-md portable guardrail specification",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint src tests",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "uuid": "^11.0.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.0.0",
+    "@types/uuid": "^10.0.0",
+    "eslint": "^9.0.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^2.0.0"
+  }
+}
