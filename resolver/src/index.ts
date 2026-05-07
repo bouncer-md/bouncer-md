@@ -9,6 +9,8 @@ export type {
 } from "./types.js";
 export type { AuditRecord } from "./audit.js";
 export { BouncerPolicyMismatchError, BouncerMalformedFileError } from "./errors.js";
+export { lint } from "./linter.js";
+export type { LintResult, LintDiagnostic } from "./linter.js";
 
 import type { ResolvedPolicyIR, ResolveOptions } from "./types.js";
 import { resolveFiles } from "./resolver.js";
