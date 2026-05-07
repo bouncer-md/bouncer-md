@@ -80,6 +80,17 @@ describe("outcome precedence: block beats require_confirmation", () => {
   });
 });
 
+// ── escalate fallback (post-Phase 1 conformance) ─────────────────────────────
+describe("escalate outcome falls back to block", () => {
+  it("treats escalate as a known but non-competitive outcome, resolves to block", () => {
+    // Spec §4.4: escalate is deferred — no precedence ordering defined in v0.5
+    // A control declaring only escalate should resolve to block (universal fallback floor)
+    const agentFile = path.join(fixtures, "outcome-escalate-fallback/agent.md");
+    const ir = resolve(agentFile);
+    expect(ir.controls[0]?.resolved_outcome).toBe("block");
+  });
+});
+
 // ── Test 18 ───────────────────────────────────────────────────────────────────
 describe("log is additive", () => {
   it("log fires alongside the winning outcome and is never suppressed", () => {

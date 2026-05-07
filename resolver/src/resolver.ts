@@ -19,12 +19,14 @@ import { validateParsedFile } from "./validator.js";
 const BOUNCER_NS = "6d626e63-722d-6d64-8000-000000000001";
 
 // Normative precedence table (§4.4). Higher = more restrictive. log excluded (non-competitive).
+// escalate is intentionally absent: §4.4 explicitly defers its precedence ordering to a future
+// version and states it MUST NOT be used as a substitute for reject-or-halt in v0.5. A control
+// declaring only escalate receives outcomeScore -1 and falls through to the block fallback floor.
 const OUTCOME_PRECEDENCE: Partial<Record<string, number>> = {
   block: 100,
-  require_higher_trust: 70,
+  require_higher_trust: 70, // provisional: §4.4 defers normative ordering to a future version
   require_confirmation: 65,
   redact: 50,
-  escalate: 40,
   allow: 10,
 };
 
@@ -106,10 +108,14 @@ function processFile(
       });
     }
 
-    // Individual competitive outcome for this control (ignoring log, after fallback)
+    // Individual competitive outcome for this control (ignoring log, after fallback).
+    // Outcomes with no score (e.g. escalate — deferred in §4.4) fall through to block.
     const knownCompetitive = outcomeItems.filter(
       (o) => KNOWN_OUTCOMES.has(o) && o !== "log"
     );
+    const rawWinner =
+      knownCompetitive.length > 0 ? knownCompetitive.reduce(moreRestrictive) : "block";
+    const individualWinner = outcomeScore(rawWinner) >= 0 ? rawWinner : "block";
 
     // placeholder — resolved_outcome set later after global winner computed
     processed.push({
@@ -120,9 +126,7 @@ function processFile(
       detect: detectItems,
       enforce: enforceItems,
       outcomes: outcomeItems,
-      resolved_outcome: (knownCompetitive.length > 0
-        ? knownCompetitive.reduce(moreRestrictive)
-        : "block") as Outcome, // individual winner; overwritten with global winner later
+      resolved_outcome: individualWinner as Outcome, // individual winner; overwritten with global winner later
       priority: null as Priority | null,
       capability: null,
     });
@@ -254,7 +258,12 @@ export function resolveFiles(
       ? (individualWinners.reduce(moreRestrictive) as Outcome)
       : "block";
 
-  // Stamp global winner on every control (resolved_outcome = post-precedence single outcome)
+  // Stamp global winner on every control.
+  // NOTE: resolved_outcome is the session-level enforcement decision — the most restrictive
+  // outcome across all controls, applied uniformly. When capability abstraction (#45) is
+  // implemented this model will be revisited: per-capability outcomes require per-control
+  // resolved_outcome values. PEPs building against this IR MUST NOT assume resolved_outcome
+  // is per-control.
   for (const c of acceptedControls) {
     c.resolved_outcome = globalWinner;
   }
