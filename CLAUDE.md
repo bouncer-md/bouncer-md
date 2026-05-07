@@ -41,6 +41,21 @@ Section 11.3 of the spec defines 18 behavioral tests. These are the definition o
 
 **Build phase:** See `resolver/PLAN.md` for the full phase breakdown. Check the pilot readiness checklist before sharing source with the partner.
 
+**Phase 0 — COMPLETE (branch: `resolver/phase-0`)**
+- `resolver/` TypeScript project scaffolded: `package.json`, `tsconfig.json`, `tsconfig.test.json`, `vitest.config.ts`, `eslint.config.js`
+- Stack: TypeScript 5.7, Vitest 2, ESLint 9, `js-yaml`, `uuid`
+- All 18 Section 11.3 conformance tests written and failing (as required by test-first rule)
+- Fixture files: one isolated directory per scenario, co-located with agent instruction files so discovery behaves correctly
+- CI workflow: `.github/workflows/resolver-ci.yml` — lint → typecheck → test on push/PR to `resolver/**`
+- PR under review — do not merge until Phase 1 is validated
+
+**Phase 1 — NOT STARTED**
+Begins only after Phase 0 PR is reviewed and merged.
+
+## Branch and PR Convention
+
+Each phase lives on its own branch: `resolver/phase-N`. Do not begin a new phase branch until the previous phase PR is reviewed and approved. Never commit directly to `main`.
+
 ---
 
 ## v0.8 Issues — Architectural Direction
