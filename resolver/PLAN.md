@@ -219,7 +219,7 @@ Apply resolution rules to a set of discovered, parsed, validated bouncer files.
 - Every conflict and fallback is logged
 - Session halt on applies_to mismatch throws a catchable exception — it does not silently return
 
-**Exit criteria:** All 18 conformance tests passing. CI fully green (both `lint-and-typecheck` and `test` jobs pass). The `test` CI job must be promoted from `continue-on-error: true` to a required blocking check before Phase 1 is considered done.
+**Exit criteria:** All 18 conformance tests passing. CI fully green (both `lint-and-typecheck` and `test` jobs pass as blocking checks).
 
 ---
 
