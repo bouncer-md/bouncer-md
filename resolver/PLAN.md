@@ -264,23 +264,23 @@ interface ResolutionLogEntry {
 }
 ```
 
-- [ ] `control_id` MUST be a stable UUID — same file + same control position = same UUID across repeated resolution runs
-- [ ] `resolved_outcome` reflects post-precedence single outcome
-- [ ] `outcomes` preserves all declared outcomes from source before precedence
-- [ ] `resolution_log` includes every conflict, fallback, rejection, and missing-policy event
-- [ ] `capability` present as null — reserved for v0.8 capability abstraction issue #45
-- [ ] Emit valid IR even on partial failure — rejected files appear in resolution_log, not controls
-- [ ] Publish `bouncer-resolved-policy.schema.json` alongside `bouncer-frontmatter.schema.json`
+- [x] `control_id` MUST be a stable UUID — same file + same control position = same UUID across repeated resolution runs
+- [x] `resolved_outcome` reflects post-precedence single outcome
+- [x] `outcomes` preserves all declared outcomes from source before precedence
+- [x] `resolution_log` includes every conflict, fallback, rejection, and missing-policy event
+- [x] `capability` present as null — reserved for v0.8 capability abstraction issue #45
+- [x] Emit valid IR even on partial failure — rejected files appear in resolution_log, not controls
+- [x] Publish `bouncer-resolved-policy.schema.json` alongside `bouncer-frontmatter.schema.json`
 
 ### 2.2 IR Conformance Tests
 
 Add to the conformance suite:
 
-- [ ] Valid IR emitted on well-formed input
-- [ ] IR with `file_rejected` log entry on malformed input — not empty IR
-- [ ] `resolved_outcome` reflects precedence table result when conflicts exist
-- [ ] `control_id` stable across repeated resolution of the same file
-- [ ] `resolution_log` non-empty when conflicts exist
+- [x] Valid IR emitted on well-formed input
+- [x] IR with `file_rejected` log entry on malformed input — not empty IR
+- [x] `resolved_outcome` reflects precedence table result when conflicts exist
+- [x] `control_id` stable across repeated resolution of the same file
+- [x] `resolution_log` non-empty when conflicts exist
 
 **Exit criteria:** IR emitted correctly for all 18 original conformance scenarios. IR schema artifact published. Pilot partner can build a PEP against the output.
 
