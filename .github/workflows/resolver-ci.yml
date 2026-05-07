@@ -11,8 +11,8 @@ on:
       - ".github/workflows/resolver-ci.yml"
 
 jobs:
-  ci:
-    name: Lint · Typecheck · Test
+  lint-and-typecheck:
+    name: Lint · Typecheck
     runs-on: ubuntu-latest
 
     defaults:
@@ -36,6 +36,30 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+  test:
+    # Tests are expected to fail during Phase 0 (test-first development).
+    # This job is informational only and does not block the PR.
+    # It becomes a required blocking check starting in Phase 1.
+    name: Test (non-blocking in Phase 0)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    defaults:
+      run:
+        working-directory: resolver
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: resolver/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Test
         run: npm test
