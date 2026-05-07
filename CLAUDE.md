@@ -48,7 +48,7 @@ Section 11.3 of the spec defines 18 behavioral tests. These are the definition o
 - Fixture files: one isolated directory per scenario, co-located with agent instruction files so discovery behaves correctly
 - CI workflow: `.github/workflows/resolver-ci.yml` — two jobs:
   - `lint-and-typecheck`: blocking, must pass (currently green)
-  - `test`: non-blocking (`continue-on-error: true`), informational only during Phase 0; becomes a required blocking check in Phase 1
+  - `test`: informational only during Phase 0; runs `npm test || true` so the check stays green while output is visible in logs; becomes a true pass/fail check in Phase 1
 - PR under review — do not merge until Phase 1 is validated
 
 **Phase 1 — NOT STARTED**

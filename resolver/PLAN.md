@@ -117,7 +117,7 @@ bouncer-md/
 - [ ] Write fixture bouncer files for each conformance test scenario
 - [ ] CI pipeline: two jobs on push/PR to `resolver/**`:
   - `lint-and-typecheck` — blocking, must pass
-  - `test` — non-blocking (`continue-on-error: true`), informational only in Phase 0; promoted to blocking in Phase 1
+  - `test` — informational only in Phase 0; runs `npm test || true` so the check stays green while test output remains visible in logs; promoted to a true pass/fail check (`npm test`) in Phase 1
 
 ### Conformance tests to write (all must fail at this stage)
 

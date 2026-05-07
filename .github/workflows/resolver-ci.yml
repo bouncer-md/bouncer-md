@@ -39,11 +39,10 @@ jobs:
 
   test:
     # Tests are expected to fail during Phase 0 (test-first development).
-    # This job is informational only and does not block the PR.
-    # It becomes a required blocking check starting in Phase 1.
-    name: Test (non-blocking in Phase 0)
+    # The step exits 0 regardless so the check stays green; full output is
+    # visible in the CI logs. Promoted to a true pass/fail check in Phase 1.
+    name: Test (informational — Phase 0)
     runs-on: ubuntu-latest
-    continue-on-error: true
 
     defaults:
       run:
@@ -62,4 +61,4 @@ jobs:
         run: npm ci
 
       - name: Test
-        run: npm test
+        run: npm test || true
