@@ -57,7 +57,7 @@ Section 11.3 of the spec defines 18 behavioral tests. These are the definition o
 - Uses `ajv` v8 with `Ajv2020` (draft 2020-12) for schema validation
 - `ajv-formats` installed as devDependency; format annotations documented-only (format checked manually in test)
 
-**Phase 3 — IN PROGRESS (branch: `resolver/phase-3`)**
+**Phase 3 — COMPLETE (merged to `main`)**
 - `resolver/src/linter.ts` — `lint(filePath): LintResult` with all Section 11.2 rules
 - `resolver/src/cli.ts` — `bouncer lint [--json] <file>` CLI; exit 0/1/2
 - `LintResult` and `LintDiagnostic` exported from `index.ts`
