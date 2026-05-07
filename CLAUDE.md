@@ -39,27 +39,56 @@ Section 11.3 of the spec defines 18 behavioral tests. These are the definition o
 
 **Do not update the spec to v0.8 yet.** The spec update happens after the resolver is working and Phase 1 of the pilot has validated the language. Build to the v0.8 shape now — the spec catches up to the implementation, not the other way around.
 
-**Build phase:** See `resolver/PLAN.md` for the full phase breakdown. Check the pilot readiness checklist before sharing source with the partner.
-
 **Phase 0 — COMPLETE (merged to `main`)**
 - `resolver/` TypeScript project scaffolded: `package.json`, `tsconfig.json`, `tsconfig.build.json`, `vitest.config.ts`, `eslint.config.js`
 - Stack: TypeScript 5.7, Vitest 2, ESLint 9, `js-yaml`, `uuid`
 - All 18 Section 11.3 conformance tests written (test-first)
 - Fixture files: one isolated directory per scenario
 
-**Phase 1 — IN PROGRESS (branch: `resolver/phase-1`)**
-- Implements: `types.ts`, `errors.ts`, `discovery.ts`, `parser.ts`, `validator.ts`, `resolver.ts`
-- All 18 Section 11.3 conformance tests passing + escalate fallback test (19 total)
-- `resolver/README.md` written — public API documentation for pilot partner
-- CI: both `lint-and-typecheck` and `test` jobs are fully blocking
-- PR under review — do not merge until validated
+**Phase 1 — COMPLETE (merged to `main`)**
+- Implements: `discovery.ts`, `errors.ts`, `parser.ts`, `resolver.ts`, `types.ts`, `validator.ts`, `index.ts`
+- All 18 Section 11.3 conformance tests passing
+- CI: both `lint-and-typecheck` and `test` jobs fully blocking and green
+- Post-merge cleanup tasks completed — see Known Implementation Decisions below
 
 **Phase 2 — NOT STARTED**
-Begins only after Phase 1 PR is reviewed and merged.
+Begins only after Phase 1 cleanup is complete and validated. Blocking items: IR schema artifact and audit stub — see Pilot Readiness Checklist.
 
 ## Branch and PR Convention
 
 Each phase lives on its own branch: `resolver/phase-N`. Do not begin a new phase branch until the previous phase PR is reviewed and approved. Never commit directly to `main`.
+
+---
+
+## Actual Source File Structure
+
+```
+resolver/src/
+├── discovery.ts   # File discovery algorithm (Section 10.1)
+├── errors.ts      # BouncerPolicyMismatchError, BouncerMalformedFileError
+├── index.ts       # Public API surface — resolve() and exported types/errors
+├── parser.ts      # Markdown + frontmatter parsing, Rule 7 stripping
+├── resolver.ts    # Resolution rules (Section 7.3) + IR emission
+├── types.ts       # IR schema type definitions (Section 7.5 — v0.8 target)
+└── validator.ts   # Structural validation (Section 11.2)
+```
+
+There is no `ir.ts`. IR types live in `types.ts`. IR emission is integrated into `resolver.ts`. This was a deliberate Phase 1 structural choice.
+
+---
+
+## Known Implementation Decisions
+
+These are deliberate design choices that deviate from or extend the spec. Do not treat these as bugs or attempt to "fix" them without reading this section first.
+
+**`resolved_outcome` is a global winner stamped on all controls.**
+The most restrictive outcome across all controls is computed and stamped uniformly on every `ResolvedControl` in the IR. Per-control declared outcomes are preserved in the `outcomes` array. This will be revisited when capability abstraction (#45) is implemented and per-capability outcomes become meaningful. PEPs building against this IR must not assume `resolved_outcome` is per-control — see comment in `resolver.ts`.
+
+**`require_higher_trust` precedence score is provisional.**
+Assigned score 70, placing it between `block` (100) and `require_confirmation` (65). Section 4.4 defers the normative ordering to a future version. This score is a design decision, not a spec-derived value. It will be revisited when v0.8 spec language is finalized. See comment in `resolver.ts`.
+
+**`escalate` is in `KNOWN_OUTCOMES` but not in `OUTCOME_PRECEDENCE`.**
+`escalate` is a recognized outcome term per Section 4.4 but its competitive precedence is explicitly deferred to a future version. It is not treated as an unknown outcome — a bouncer file declaring `escalate` will not trigger the unknown outcome fallback. A control declaring only `escalate` resolves to `block` (universal fallback floor). This is correct v0.5 behavior. See comment in `resolver.ts`.
 
 ---
 
@@ -70,7 +99,7 @@ These issues are filed and in backlog. The resolver must be architected to absor
 | Issue | Title | Build impact |
 |-------|-------|--------------|
 | #42 | PEP/PDP Architecture | Resolver is a PDP — it evaluates and emits only. It does not enforce. Design accordingly from day one. |
-| #43 | Resolved Policy IR | IR is the resolver's primary output. `control_id` must be a stable UUID. `resolution_log` must be complete. `capability` field reserved as null. Types live in `types.ts`; emission in `resolver.ts`. |
+| #43 | Resolved Policy IR | IR types live in `types.ts`. IR emission in `resolver.ts`. `control_id` must be a stable UUID. `resolution_log` must be complete. `capability` field reserved as null. `bouncer-resolved-policy.schema.json` artifact not yet published — Phase 2 work. |
 | #44 | Enforcement Timing and Mediation Contract | Resolver does not enforce timing — the PEP does. But the IR must carry enough for a conformant PEP to enforce it. |
 | #45 | Capability Abstraction | Not implemented in this build. `capability: null` is the correct IR field value. Do not implement capability map processing. |
 | #46 | OTel Audit Contract | Audit record fields are defined here. `decision_id` and `control_id` are distinct. Phase 4 stub must emit all required fields. OTel span emission deferred pending SIG validation. |
@@ -121,10 +150,10 @@ Do not build these. Do not stub them unless noted. Do not design around them.
 
 The partner's Phase 2 starts when all of these are true. Do not share source until the checklist is complete.
 
-- [ ] All 18 Section 11.3 conformance tests passing
-- [ ] IR emitted correctly for all conformance scenarios
-- [ ] `bouncer-resolved-policy.schema.json` published to repo
-- [ ] Audit record emitted for every enforcement decision
+- [x] All 18 Section 11.3 conformance tests passing
+- [x] IR emitted correctly for all conformance scenarios
+- [ ] `bouncer-resolved-policy.schema.json` published to repo — **Phase 2**
+- [ ] Audit record emitted for every enforcement decision — **Phase 4**
 - [ ] Public API surface documented in `resolver/README.md`
 - [ ] What is implemented vs. stubbed explicitly documented — no surprises for the partner
 
