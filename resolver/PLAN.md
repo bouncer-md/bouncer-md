@@ -311,8 +311,8 @@ Add to the conformance suite:
 
 **Goal:** Structured log emission per the v0.8 OTel audit contract (issue #46). Stubbed for the pilot — full OTel span emission deferred until OTel GenAI SIG namespace validation is complete.
 
-- [ ] Every enforcement decision emits a structured JSON audit record to stdout/logger
-- [ ] Required fields per issue #46:
+- [x] Every enforcement decision emits a structured JSON audit record to stdout/logger
+- [x] Required fields per issue #46:
   - `bouncer.schema_version`
   - `bouncer.decision_id` — unique UUID per decision
   - `bouncer.control_id` — matches IR control_id
@@ -325,9 +325,9 @@ Add to the conformance suite:
   - `bouncer.enforcement_path` — `path_a` or `path_b`
   - `bouncer.decision_timestamp`
   - `bouncer.session_id` — nullable
-- [ ] Audit record emitted synchronously before enforcement result returned — async logging is not conformant
-- [ ] Single-line JSON per decision — not multi-line, not pretty-printed
-- [ ] OTel span emission stubbed with a TODO and the attribute namespace flagged for SIG validation before finalizing
+- [x] Audit record emitted synchronously before enforcement result returned — async logging is not conformant
+- [x] Single-line JSON per decision — not multi-line, not pretty-printed
+- [x] OTel span emission stubbed with a TODO and the attribute namespace flagged for SIG validation before finalizing
 
 **Exit criteria:** Every enforcement decision produces a parseable single-line JSON audit record. Pilot partner can correlate traces end-to-end.
 

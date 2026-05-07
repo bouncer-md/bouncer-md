@@ -12,7 +12,7 @@ describe("missing global baseline", () => {
     // Spec §11.3: if no bouncer.md is found after walking to filesystem root,
     // only scoped *.bouncer.md files apply; this MUST be logged
     const agentFile = path.join(fixtures, "missing-global-baseline/agent.md");
-    const ir = resolve(agentFile);
+    const ir = resolve(agentFile, { logLevel: "silent" });
 
     // Scoped controls are applied
     expect(ir.controls.length).toBeGreaterThan(0);
@@ -33,7 +33,7 @@ describe("discovery ancestor walking", () => {
     // The agent is in: fixtures/discovery-ancestor/child/
     // The bouncer.md is in: fixtures/discovery-ancestor/  (parent)
     const agentFile = path.join(fixtures, "discovery-ancestor/child/agent.md");
-    const ir = resolve(agentFile);
+    const ir = resolve(agentFile, { logLevel: "silent" });
 
     // The global baseline control from the parent bouncer.md must be present
     expect(ir.controls.length).toBeGreaterThan(0);
@@ -51,7 +51,7 @@ describe("scoped file alphabetical ordering", () => {
     // Fixture files: alpha.bouncer.md, Middle.bouncer.md, zebra.bouncer.md
     // Case-insensitive order: alpha < middle < zebra
     const agentFile = path.join(fixtures, "discovery-scoped-ordering/agent.md");
-    const ir = resolve(agentFile);
+    const ir = resolve(agentFile, { logLevel: "silent" });
 
     const accepted = ir.policy_files.filter((f) => f.accepted);
     expect(accepted.length).toBe(3);

@@ -24,6 +24,8 @@ export interface PolicyFileRecord {
   path: string;
   accepted: boolean;
   rejection_reason: string | null;
+  policy_name: string | null;    // frontmatter name; null when file is unparseable
+  policy_version: string | null; // frontmatter version; null when absent or unparseable
 }
 
 export interface ResolvedControl {

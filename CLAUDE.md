@@ -59,6 +59,14 @@ Section 11.3 of the spec defines 18 behavioral tests. These are the definition o
 
 **Phase 3 — NOT STARTED**
 
+**Phase 4 — IN PROGRESS (branch: `resolver/phase-4`, based on phase-2)**
+- `resolver/src/audit.ts` — `AuditRecord` type + `emitAuditRecord()` + `newDecisionId()`
+- Emits one `bouncer.*` JSON record per control to stdout, synchronously, before returning IR
+- Suppressed when `logLevel: "silent"`; OTel span stubbed with TODO (#46)
+- `PolicyFileRecord` extended with `policy_name` and `policy_version` (IR schema updated)
+- `AuditRecord` type exported from `index.ts` for PEP use
+- 20 audit conformance tests in `tests/conformance/audit.test.ts`
+
 ## Branch and PR Convention
 
 Each phase lives on its own branch: `resolver/phase-N`. Do not begin a new phase branch until the previous phase PR is reviewed and approved. Never commit directly to `main`.
@@ -160,7 +168,7 @@ The partner's Phase 2 starts when all of these are true. Do not share source unt
 - [x] `bouncer-resolved-policy.schema.json` published to `resolver/` directory
 - [x] Public API surface documented in `resolver/README.md`
 - [x] What is implemented vs. stubbed explicitly documented — no surprises for the partner
-- [ ] Audit record emitted for every enforcement decision — **Phase 4**
+- [x] Audit record emitted for every enforcement decision
 
 ---
 

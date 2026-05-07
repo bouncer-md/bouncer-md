@@ -208,7 +208,13 @@ export function resolveFiles(
     const parseResult = parseBouncerFile(filePath);
 
     if (!parseResult.ok) {
-      policyFiles.push({ path: filePath, accepted: false, rejection_reason: parseResult.reason });
+      policyFiles.push({
+        path: filePath,
+        accepted: false,
+        rejection_reason: parseResult.reason,
+        policy_name: null,
+        policy_version: null,
+      });
       resolutionLog.push({
         event: "file_rejected",
         detail: `file rejected: ${parseResult.reason}`,
@@ -222,7 +228,14 @@ export function resolveFiles(
     const validationErrors = validateParsedFile(parseResult.file);
     if (validationErrors.length > 0) {
       const reason = validationErrors.map((e) => e.reason).join("; ");
-      policyFiles.push({ path: filePath, accepted: false, rejection_reason: reason });
+      const rawVersion = parseResult.file.frontmatter["version"];
+      policyFiles.push({
+        path: filePath,
+        accepted: false,
+        rejection_reason: reason,
+        policy_name: parseResult.file.frontmatter.name,
+        policy_version: typeof rawVersion === "string" ? rawVersion : null,
+      });
       resolutionLog.push({
         event: "file_rejected",
         detail: `file rejected: ${reason}`,
@@ -236,7 +249,14 @@ export function resolveFiles(
     // applies_to check — throws BouncerPolicyMismatchError on mismatch; halts session
     checkAppliesTo(parseResult.file, options.agentName, options);
 
-    policyFiles.push({ path: filePath, accepted: true, rejection_reason: null });
+    const rawVersion = parseResult.file.frontmatter["version"];
+    policyFiles.push({
+      path: filePath,
+      accepted: true,
+      rejection_reason: null,
+      policy_name: parseResult.file.frontmatter.name,
+      policy_version: typeof rawVersion === "string" ? rawVersion : null,
+    });
     const controls = processFile(parseResult.file, resolutionLog);
     acceptedControls.push(...controls);
   }
