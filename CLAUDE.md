@@ -51,8 +51,13 @@ Section 11.3 of the spec defines 18 behavioral tests. These are the definition o
 - CI: both `lint-and-typecheck` and `test` jobs fully blocking and green
 - Post-merge cleanup tasks completed — see Known Implementation Decisions below
 
-**Phase 2 — NOT STARTED**
-Begins only after Phase 1 cleanup is complete and validated. Blocking items: IR schema artifact and audit stub — see Pilot Readiness Checklist.
+**Phase 2 — IN PROGRESS (branch: `resolver/phase-2`)**
+- `bouncer-resolved-policy.schema.json` published to `resolver/` directory
+- IR conformance tests: 22 tests in `tests/conformance/ir.test.ts`
+- Uses `ajv` v8 with `Ajv2020` (draft 2020-12) for schema validation
+- `ajv-formats` installed as devDependency; format annotations documented-only (format checked manually in test)
+
+**Phase 3 — NOT STARTED**
 
 ## Branch and PR Convention
 
@@ -152,10 +157,10 @@ The partner's Phase 2 starts when all of these are true. Do not share source unt
 
 - [x] All 18 Section 11.3 conformance tests passing
 - [x] IR emitted correctly for all conformance scenarios
-- [ ] `bouncer-resolved-policy.schema.json` published to repo — **Phase 2**
+- [x] `bouncer-resolved-policy.schema.json` published to `resolver/` directory
+- [x] Public API surface documented in `resolver/README.md`
+- [x] What is implemented vs. stubbed explicitly documented — no surprises for the partner
 - [ ] Audit record emitted for every enforcement decision — **Phase 4**
-- [ ] Public API surface documented in `resolver/README.md`
-- [ ] What is implemented vs. stubbed explicitly documented — no surprises for the partner
 
 ---
 
