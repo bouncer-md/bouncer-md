@@ -11,7 +11,7 @@ describe("applies_to match", () => {
   it("applies policy normally when agent name matches applies_to", () => {
     // Spec §11.3: policy with applies_to: [agent-a] loaded by agent-a is applied normally
     const agentFile = path.join(fixtures, "applies-to-match/agent.md");
-    const ir = resolve(agentFile, { agentName: "agent-a" });
+    const ir = resolve(agentFile, { agentName: "agent-a", logLevel: "silent" });
     expect(ir.controls.length).toBeGreaterThan(0);
     expect(ir.resolution_log.some((e) => e.event === "applies_to_mismatch")).toBe(false);
   });
@@ -22,7 +22,7 @@ describe("applies_to mismatch", () => {
   it("rejects policy when agent name does not match applies_to", () => {
     // Spec §11.3: policy with applies_to: [agent-a] loaded by agent-b MUST NOT be silently applied
     const agentFile = path.join(fixtures, "applies-to-mismatch/agent.md");
-    expect(() => resolve(agentFile, { agentName: "agent-b" })).toThrow(
+    expect(() => resolve(agentFile, { agentName: "agent-b", logLevel: "silent" })).toThrow(
       BouncerPolicyMismatchError
     );
   });
@@ -33,7 +33,7 @@ describe("applies_to absent", () => {
   it("applies policy to all loading contexts when applies_to is not present", () => {
     // Spec §11.3: policy with no applies_to is applied to all loading contexts
     const agentFile = path.join(fixtures, "applies-to-absent/agent.md");
-    const ir = resolve(agentFile, { agentName: "any-agent-at-all" });
+    const ir = resolve(agentFile, { agentName: "any-agent-at-all", logLevel: "silent" });
     expect(ir.controls.length).toBeGreaterThan(0);
     expect(ir.resolution_log.some((e) => e.event === "applies_to_mismatch")).toBe(false);
   });
@@ -49,7 +49,7 @@ describe("applies_to scope exclusion attack", () => {
     let returnedIR: unknown = null;
 
     try {
-      returnedIR = resolve(agentFile, { agentName: "agent-b" });
+      returnedIR = resolve(agentFile, { agentName: "agent-b", logLevel: "silent" });
     } catch (e) {
       threw = true;
       expect(e).toBeInstanceOf(BouncerPolicyMismatchError);
@@ -67,7 +67,7 @@ describe("applies_to unverified agent name", () => {
     // as a mismatch and rejected; unverified names MUST NOT be silently applied
     const agentFile = path.join(fixtures, "applies-to-unverified/agent.md");
     // No agentName supplied — resolver cannot verify, must reject
-    expect(() => resolve(agentFile)).toThrow(BouncerPolicyMismatchError);
+    expect(() => resolve(agentFile, { logLevel: "silent" })).toThrow(BouncerPolicyMismatchError);
   });
 });
 
@@ -77,7 +77,7 @@ describe("applies_to case-insensitive match", () => {
     // Spec §11.3: both sides MUST be normalized before comparison;
     // applies_to: [Agent-A] loaded by context where agentName is "agent-a" MUST match
     const agentFile = path.join(fixtures, "applies-to-case-insensitive/agent.md");
-    const ir = resolve(agentFile, { agentName: "agent-a" });
+    const ir = resolve(agentFile, { agentName: "agent-a", logLevel: "silent" });
     expect(ir.controls.length).toBeGreaterThan(0);
     expect(ir.resolution_log.some((e) => e.event === "applies_to_mismatch")).toBe(false);
   });
@@ -93,7 +93,7 @@ describe("applies_to mismatch exception and halt", () => {
     let returnedIR: unknown = null;
 
     try {
-      returnedIR = resolve(agentFile, { agentName: "agent-b" });
+      returnedIR = resolve(agentFile, { agentName: "agent-b", logLevel: "silent" });
     } catch (e) {
       caughtError = e;
     }

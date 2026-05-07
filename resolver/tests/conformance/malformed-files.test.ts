@@ -18,7 +18,7 @@ describe("empty required section rejection", () => {
     let returnedIR: unknown = null;
 
     try {
-      returnedIR = resolve(agentFile);
+      returnedIR = resolve(agentFile, { logLevel: "silent" });
     } catch (e) {
       caughtError = e;
     }
@@ -43,7 +43,7 @@ describe("partial validity rejection", () => {
     let returnedIR: unknown = null;
 
     try {
-      returnedIR = resolve(agentFile);
+      returnedIR = resolve(agentFile, { logLevel: "silent" });
     } catch (e) {
       caughtError = e;
     }
@@ -65,7 +65,7 @@ describe("invalid YAML rejection", () => {
     let returnedIR: unknown = null;
 
     try {
-      returnedIR = resolve(agentFile);
+      returnedIR = resolve(agentFile, { logLevel: "silent" });
     } catch (e) {
       caughtError = e;
     }
@@ -85,7 +85,7 @@ describe("zero valid controls rejection", () => {
     let caughtError: unknown = null;
 
     try {
-      resolve(agentFile);
+      resolve(agentFile, { logLevel: "silent" });
     } catch (e) {
       caughtError = e;
     }

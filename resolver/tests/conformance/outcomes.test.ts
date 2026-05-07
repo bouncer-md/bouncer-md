@@ -14,7 +14,7 @@ describe("duplicate control name across files", () => {
     // conflicting outcomes resolve via the normative precedence table and MUST be logged
     // file-one.bouncer.md → block; file-two.bouncer.md → require_confirmation
     const agentFile = path.join(fixtures, "duplicate-control-names/agent.md");
-    const ir = resolve(agentFile);
+    const ir = resolve(agentFile, { logLevel: "silent" });
 
     // Both controls present in IR (not deduplicated)
     const accessControls = ir.controls.filter((c) => c.name === "Access Control");
@@ -35,7 +35,7 @@ describe("unknown outcome capability fallback", () => {
     // Spec §11.3: a control with an unknown outcome MUST NOT be silently ignored;
     // the resolver MUST fall back to the next most restrictive known outcome and log the fallback
     const agentFile = path.join(fixtures, "unknown-outcome/agent.md");
-    const ir = resolve(agentFile);
+    const ir = resolve(agentFile, { logLevel: "silent" });
 
     expect(ir.controls.length).toBeGreaterThan(0);
 
@@ -65,7 +65,7 @@ describe("outcome precedence: block beats require_confirmation", () => {
     // Spec §11.3: when two controls apply and one yields block and the other require_confirmation,
     // the resolved outcome MUST be block (normative precedence: block > require_confirmation > allow)
     const agentFile = path.join(fixtures, "outcome-precedence/agent.md");
-    const ir = resolve(agentFile);
+    const ir = resolve(agentFile, { logLevel: "silent" });
 
     // All controls' resolved_outcome must reflect the winner
     const uniqueResolved = [...new Set(ir.controls.map((c) => c.resolved_outcome))];
@@ -86,7 +86,7 @@ describe("escalate outcome falls back to block", () => {
     // Spec §4.4: escalate is deferred — no precedence ordering defined in v0.5
     // A control declaring only escalate should resolve to block (universal fallback floor)
     const agentFile = path.join(fixtures, "outcome-escalate-fallback/agent.md");
-    const ir = resolve(agentFile);
+    const ir = resolve(agentFile, { logLevel: "silent" });
     expect(ir.controls[0]?.resolved_outcome).toBe("block");
   });
 });
@@ -97,7 +97,7 @@ describe("log is additive", () => {
     // Spec §11.3: when the winning outcome is block, any log outcome from any applicable
     // control MUST also fire; log is never suppressed by a more restrictive outcome winning
     const agentFile = path.join(fixtures, "log-additive/agent.md");
-    const ir = resolve(agentFile);
+    const ir = resolve(agentFile, { logLevel: "silent" });
 
     expect(ir.controls.length).toBeGreaterThan(0);
 

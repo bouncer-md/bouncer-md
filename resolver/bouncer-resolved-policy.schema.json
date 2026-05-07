@@ -46,7 +46,7 @@
     },
     "PolicyFileRecord": {
       "type": "object",
-      "required": ["path", "accepted", "rejection_reason"],
+      "required": ["path", "accepted", "rejection_reason", "policy_name", "policy_version"],
       "additionalProperties": false,
       "properties": {
         "path": {
@@ -60,6 +60,14 @@
         "rejection_reason": {
           "type": ["string", "null"],
           "description": "Human-readable reason the file was rejected. Null when accepted is true."
+        },
+        "policy_name": {
+          "type": ["string", "null"],
+          "description": "Value of the 'name' frontmatter field. Null if the file could not be parsed."
+        },
+        "policy_version": {
+          "type": ["string", "null"],
+          "description": "Value of the 'version' frontmatter field. Null if absent or unparseable."
         }
       }
     },
@@ -160,7 +168,7 @@
       "schema_version": "0.8",
       "resolved_at": "2025-01-01T00:00:00.000Z",
       "policy_files": [
-        { "path": "/project/bouncer.md", "accepted": true, "rejection_reason": null }
+        { "path": "/project/bouncer.md", "accepted": true, "rejection_reason": null, "policy_name": "My Policy", "policy_version": "1.0" }
       ],
       "controls": [
         {
