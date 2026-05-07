@@ -106,7 +106,7 @@ That's it. No code required. The LLM applies the controls directly.
 
 ### 3. (Optional) Wire the reference resolver
 
-For deterministic enforcement in production pipelines, integrate the reference resolver into your agent pipeline. See [SPEC.md](./SPEC.md) Section 8.2 for the integration pattern.
+For deterministic enforcement in production pipelines, integrate the reference resolver into your agent pipeline. See the [resolver README](./resolver/README.md) for installation and usage, and [SPEC.md](./SPEC.md) Section 8.2 for the integration pattern.
 
 ---
 
@@ -163,6 +163,10 @@ bouncer-md/
 │   ├── prompt-injection.bouncer.md       # Prompt injection defense
 │   ├── secret-protection.bouncer.md      # Secret and credential protection
 │   └── tool-execution-safety.bouncer.md  # Tool execution guardrails
+├── resolver/
+│   └── README.md                         # Reference resolver — install, usage, IR schema
+├── harness/
+│   └── PLAN.md                           # Agent test harness development plan
 ├── tests/
 │   ├── README.md                         # Testing guide
 │   ├── adversarial/                      # Attack prompt inputs, one file per threat
@@ -171,6 +175,7 @@ bouncer-md/
 ├── .gitignore
 ├── README.md
 ├── CONTRIBUTING.md
+├── SECURITY.md
 └── LICENSE
 ```
 
