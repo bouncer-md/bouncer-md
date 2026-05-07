@@ -41,18 +41,20 @@ Section 11.3 of the spec defines 18 behavioral tests. These are the definition o
 
 **Build phase:** See `resolver/PLAN.md` for the full phase breakdown. Check the pilot readiness checklist before sharing source with the partner.
 
-**Phase 0 — COMPLETE (branch: `resolver/phase-0`)**
+**Phase 0 — COMPLETE (merged to `main`)**
 - `resolver/` TypeScript project scaffolded: `package.json`, `tsconfig.json`, `tsconfig.build.json`, `vitest.config.ts`, `eslint.config.js`
 - Stack: TypeScript 5.7, Vitest 2, ESLint 9, `js-yaml`, `uuid`
-- All 18 Section 11.3 conformance tests written and failing (as required by test-first rule)
-- Fixture files: one isolated directory per scenario, co-located with agent instruction files so discovery behaves correctly
-- CI workflow: `.github/workflows/resolver-ci.yml` — two jobs:
-  - `lint-and-typecheck`: blocking, must pass (currently green)
-  - `test`: informational only during Phase 0; runs `npm test || true` so the check stays green while output is visible in logs; becomes a true pass/fail check in Phase 1
-- PR under review — do not merge until Phase 1 is validated
+- All 18 Section 11.3 conformance tests written (test-first)
+- Fixture files: one isolated directory per scenario
 
-**Phase 1 — NOT STARTED**
-Begins only after Phase 0 PR is reviewed and merged.
+**Phase 1 — IN PROGRESS (branch: `resolver/phase-1`)**
+- Implements: `discovery.ts`, `parser.ts`, `validator.ts`, `resolver.ts`
+- All 18 Section 11.3 conformance tests passing
+- CI: both `lint-and-typecheck` and `test` jobs are fully blocking
+- PR under review — do not merge until validated
+
+**Phase 2 — NOT STARTED**
+Begins only after Phase 1 PR is reviewed and merged.
 
 ## Branch and PR Convention
 
