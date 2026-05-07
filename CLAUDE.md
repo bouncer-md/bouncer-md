@@ -59,7 +59,7 @@ Section 11.3 of the spec defines 18 behavioral tests. These are the definition o
 
 **Phase 3 — NOT STARTED**
 
-**Phase 4 — IN PROGRESS (branch: `resolver/phase-4`, based on phase-2)**
+**Phase 4 — COMPLETE (merged to `main`)**
 - `resolver/src/audit.ts` — `AuditRecord` type + `emitAuditRecord()` + `newDecisionId()`
 - Emits one `bouncer.*` JSON record per control to stdout, synchronously, before returning IR
 - Suppressed when `logLevel: "silent"`; OTel span stubbed with TODO (#46)
