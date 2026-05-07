@@ -85,20 +85,23 @@ bouncer-md/
 ├── SPEC.md                             # Canonical spec (current: v0.5)
 ├── resolver/
 │   ├── PLAN.md                         # This document — full development plan
+│   ├── README.md                       # Public API documentation (pilot partner surface)
 │   ├── src/
+│   │   ├── types.ts            # IR type definitions (ResolvedPolicyIR, ResolvedControl, etc.)
+│   │   ├── errors.ts           # Catchable error classes (BouncerPolicyMismatchError, BouncerMalformedFileError)
 │   │   ├── discovery.ts        # File discovery algorithm (Section 10.1)
 │   │   ├── parser.ts           # Markdown + frontmatter parsing
 │   │   ├── validator.ts        # Structural validation (Section 11.2)
-│   │   ├── resolver.ts         # Resolution rules (Section 7.3)
-│   │   ├── ir.ts               # IR schema and emission (Section 7.5 — v0.8)
+│   │   ├── resolver.ts         # Resolution rules (Section 7.3) + IR emission
 │   │   └── index.ts            # Public API surface
 │   ├── tests/
-│   │   ├── conformance/        # Section 11.3 behavioral tests (18 tests)
+│   │   ├── conformance/        # Section 11.3 behavioral tests (18 tests + escalate fallback)
 │   │   ├── unit/               # Per-module unit tests
 │   │   └── fixtures/           # Bouncer files for test scenarios
 │   ├── package.json
-│   ├── tsconfig.json
-│   └── README.md
+│   ├── tsconfig.json           # Covers src + tests (noEmit) — used by ESLint and typecheck
+│   ├── tsconfig.build.json     # Compilation only (outDir: ./dist, rootDir: ./src)
+│   └── eslint.config.js
 ```
 
 **Language:** TypeScript. Rationale: the existing test harness is Node.js, the pilot team is likely running a JS/TS stack, and type safety on the IR schema matters. A Python port can follow once the spec conformance baseline is established.
@@ -227,7 +230,7 @@ Apply resolution rules to a set of discovered, parsed, validated bouncer files.
 
 **Goal:** Resolver emits a structured JSON output per the v0.8 IR schema (issue #43). This is the artifact the pilot partner will build against.
 
-### 2.1 IR Schema (`ir.ts`)
+### 2.1 IR Schema (`types.ts` + `resolver.ts`)
 
 Implement the normative JSON structure from issue #43.
 

@@ -48,8 +48,9 @@ Section 11.3 of the spec defines 18 behavioral tests. These are the definition o
 - Fixture files: one isolated directory per scenario
 
 **Phase 1 — IN PROGRESS (branch: `resolver/phase-1`)**
-- Implements: `discovery.ts`, `parser.ts`, `validator.ts`, `resolver.ts`
-- All 18 Section 11.3 conformance tests passing
+- Implements: `types.ts`, `errors.ts`, `discovery.ts`, `parser.ts`, `validator.ts`, `resolver.ts`
+- All 18 Section 11.3 conformance tests passing + escalate fallback test (19 total)
+- `resolver/README.md` written — public API documentation for pilot partner
 - CI: both `lint-and-typecheck` and `test` jobs are fully blocking
 - PR under review — do not merge until validated
 
@@ -69,7 +70,7 @@ These issues are filed and in backlog. The resolver must be architected to absor
 | Issue | Title | Build impact |
 |-------|-------|--------------|
 | #42 | PEP/PDP Architecture | Resolver is a PDP — it evaluates and emits only. It does not enforce. Design accordingly from day one. |
-| #43 | Resolved Policy IR | IR is the resolver's primary output. `control_id` must be a stable UUID. `resolution_log` must be complete. `capability` field reserved as null. |
+| #43 | Resolved Policy IR | IR is the resolver's primary output. `control_id` must be a stable UUID. `resolution_log` must be complete. `capability` field reserved as null. Types live in `types.ts`; emission in `resolver.ts`. |
 | #44 | Enforcement Timing and Mediation Contract | Resolver does not enforce timing — the PEP does. But the IR must carry enough for a conformant PEP to enforce it. |
 | #45 | Capability Abstraction | Not implemented in this build. `capability: null` is the correct IR field value. Do not implement capability map processing. |
 | #46 | OTel Audit Contract | Audit record fields are defined here. `decision_id` and `control_id` are distinct. Phase 4 stub must emit all required fields. OTel span emission deferred pending SIG validation. |
