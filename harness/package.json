@@ -1,0 +1,27 @@
+{
+  "name": "@bouncer-md/harness",
+  "version": "0.1.0",
+  "description": "Integration test harness for the bouncer-md reference resolver",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint providers scenario assertions report tests",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --config tests/vitest.config.ts",
+    "test:watch": "vitest --config tests/vitest.config.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@bouncer-md/resolver": "file:../resolver",
+    "openai": "^4.70.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^22.0.0",
+    "ajv": "^8.20.0",
+    "eslint": "^9.0.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^2.0.0"
+  }
+}

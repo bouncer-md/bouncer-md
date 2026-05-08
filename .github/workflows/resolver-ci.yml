@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - "resolver/**"
+      - "harness/**"
       - ".github/workflows/resolver-ci.yml"
   pull_request:
     paths:
       - "resolver/**"
+      - "harness/**"
       - ".github/workflows/resolver-ci.yml"
 
 jobs:
@@ -56,6 +58,41 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Test
+        run: npm test
+
+  harness-unit-tests:
+    name: Harness Unit Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: harness
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: |
+            resolver/package-lock.json
+            harness/package-lock.json
+
+      - name: Build resolver (harness dependency)
+        working-directory: resolver
+        run: npm ci && npm run build
+
+      - name: Install harness dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
 
       - name: Test
         run: npm test

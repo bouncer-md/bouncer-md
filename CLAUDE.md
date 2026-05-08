@@ -51,7 +51,7 @@ Section 11.3 of the spec defines 18 behavioral tests. These are the definition o
 - CI: both `lint-and-typecheck` and `test` jobs fully blocking and green
 - Post-merge cleanup tasks completed — see Known Implementation Decisions below
 
-**Phase 2 — IN PROGRESS (branch: `resolver/phase-2`)**
+**Phase 2 — COMPLETE (merged to `main`)**
 - `bouncer-resolved-policy.schema.json` published to `resolver/` directory
 - IR conformance tests: 22 tests in `tests/conformance/ir.test.ts`
 - Uses `ajv` v8 with `Ajv2020` (draft 2020-12) for schema validation
