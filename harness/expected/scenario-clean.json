@@ -1,0 +1,13 @@
+{
+  "_comment": "Expected shape for the clean scenario IR. Control IDs are stable UUIDv5 values derived from file path + index — see resolver/src/resolver.ts controlId(). resolved_outcome is the global winner across all controls.",
+  "schema_version": "0.8",
+  "policy_file_count": 3,
+  "policy_files": [
+    { "name": "code-review.bouncer.md", "accepted": true },
+    { "name": "documentation.bouncer.md", "accepted": true },
+    { "name": "global.bouncer.md", "accepted": true }
+  ],
+  "control_count": 7,
+  "resolved_outcome": "block",
+  "resolution_log_entries": 1
+}

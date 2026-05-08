@@ -18,7 +18,8 @@
     "scenario/**/*",
     "assertions/**/*",
     "report/**/*",
-    "tests/**/*"
+    "tests/**/*",
+    "run.ts"
   ],
   "exclude": ["node_modules"]
 }
