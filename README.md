@@ -166,12 +166,22 @@ bouncer-md/
 ├── resolver/
 │   └── README.md                         # Reference resolver — install, usage, IR schema
 ├── harness/
-│   └── PLAN.md                           # Agent test harness development plan
+│   ├── README.md                         # Setup, usage, environment variables
+│   ├── PLAN.md                           # Development plan
+│   ├── run.ts                            # Integration harness entry point
+│   ├── bouncer/                          # Bouncer policy files for the harness scenario
+│   ├── adversarial/                      # Adversarial input catalog (10 inputs, 4 categories)
+│   ├── expected/                         # Expected IR shape and adversarial outcomes
+│   ├── providers/                        # LLM provider adapters (Anthropic, OpenAI)
+│   ├── scenario/                         # Agent definitions and scenario runner
+│   ├── assertions/                       # IR, audit record, and enforcement assertion library
+│   ├── report/                           # Human-readable report generator
+│   └── tests/unit/                       # Unit tests (no API key required)
 ├── tests/
-│   ├── README.md                         # Testing guide
+│   ├── README.md                         # Manual testing guide
 │   ├── adversarial/                      # Attack prompt inputs, one file per threat
 │   ├── expected/                         # Expected outcomes per threat
-│   └── harness/                          # Automated test runners (Python + Node.js)
+│   └── harness/                          # Lightweight test runners (Python + Node.js)
 ├── .gitignore
 ├── README.md
 ├── CONTRIBUTING.md
@@ -183,13 +193,27 @@ bouncer-md/
 
 ## Testing
 
-Validate that your bouncer file actually enforces controls before deploying. The test suite runs adversarial inputs against the LLM with your bouncer file as the sole system prompt — no built-in guardrails, no safety net.
+### Reference harness (recommended)
+
+The reference harness in `harness/` runs a three-agent code review scenario against the resolver, executes 10 adversarial inputs across four attack categories, and produces a structured report. It requires an API key for integration runs; unit tests run without one.
+
+```bash
+cd harness
+npm install
+export ANTHROPIC_API_KEY=your-key   # or OPENAI_API_KEY with BOUNCER_LLM_PROVIDER=openai
+npm run harness                     # clean scenario + all adversarial scenarios
+npm run harness:clean               # resolver validation only
+npm run harness:adversarial         # adversarial suite only
+npm test                            # unit tests — no API key required
+```
+
+See [harness/README.md](./harness/README.md) for full setup, environment variables, and how to interpret the report.
 
 ### Manual (no API key required)
 
 Copy an attack from `tests/adversarial/`, paste it into any LLM interface with your bouncer file as the system prompt, and check the response against `tests/expected/`.
 
-### Automated — Python
+### Lightweight scripts
 
 ```bash
 cd tests/harness
@@ -198,8 +222,6 @@ export ANTHROPIC_API_KEY=your-key
 python test_bouncer.py --bouncer ../../examples/default.bouncer.md
 ```
 
-### Automated — Node.js
-
 ```bash
 cd tests/harness
 npm install
@@ -207,7 +229,7 @@ export ANTHROPIC_API_KEY=your-key
 npm test
 ```
 
-Both harnesses run all threat categories by default and report `PASS`, `FAIL`, or `WARN` per attack. See [tests/README.md](./tests/README.md) for full usage and how to interpret results.
+See [tests/README.md](./tests/README.md) for usage.
 
 ---
 
