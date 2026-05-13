@@ -1,5 +1,10 @@
 import * as fs from "node:fs";
 import yaml from "js-yaml";
+import { BouncerMalformedFileError } from "./errors.js";
+
+// Maximum bouncer file size before parsing is refused. A legitimate bouncer file
+// will never approach this limit; exceeding it indicates a computational attack.
+export const MAX_INPUT_BYTES = 512_000;
 
 export interface ParsedFrontmatter {
   name: string;
@@ -29,6 +34,10 @@ export function parseBouncerFile(filePath: string): ParseResult {
     content = fs.readFileSync(filePath, "utf-8");
   } catch (e) {
     return { ok: false, reason: `cannot read file: ${String(e)}` };
+  }
+
+  if (Buffer.byteLength(content, "utf-8") > MAX_INPUT_BYTES) {
+    throw new BouncerMalformedFileError(filePath, "input_too_large");
   }
 
   // Frontmatter must begin at the very start of the file

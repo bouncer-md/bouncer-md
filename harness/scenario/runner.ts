@@ -39,7 +39,7 @@ const ADVERSARIAL_DIR = path.resolve(__dirname, "../adversarial");
 function captureResolve(
   agentInstructionPath: string,
   options: ResolveOptions
-): { ir: ResolvedPolicyIR; records: AuditRecord[] } {
+): { ir: ResolvedPolicyIR | null; records: AuditRecord[] } {
   const captured: string[] = [];
   const originalWrite = process.stdout.write.bind(process.stdout);
 
@@ -62,9 +62,11 @@ function captureResolve(
   // Override stdout.write to intercept audit records from resolve()
   process.stdout.write = captureWrite;
 
-  let ir: ResolvedPolicyIR;
+  let ir: ResolvedPolicyIR | null = null;
   try {
     ir = resolve(agentInstructionPath, options);
+  } catch {
+    // resolver threw — ir stays null; callers must treat null as block (fail closed, §7.6)
   } finally {
     process.stdout.write = originalWrite;
   }
@@ -82,8 +84,9 @@ function captureResolve(
 
 // ── PEP enforcement helper ────────────────────────────────────────────────────
 
-function isBlocked(ir: ResolvedPolicyIR): boolean {
-  if (ir.controls.length === 0) return true; // fail closed
+function isBlocked(ir: ResolvedPolicyIR | null | undefined): boolean {
+  if (!ir) return true; // null/undefined IR = fail closed (§7.6)
+  if (ir.controls.length === 0) return true;
   return ir.controls.some((c) => c.resolved_outcome === "block");
 }
 
@@ -122,7 +125,7 @@ async function runAgent(
   provider: LlmProvider,
   agent: Agent,
   userMessage: string,
-  ir: ResolvedPolicyIR,
+  ir: ResolvedPolicyIR | null | undefined,
   maxTurns = 4
 ): Promise<{ response: string; model: string }> {
   const blocked = isBlocked(ir);
@@ -331,11 +334,20 @@ async function runOneAdversarialScenario(
   const invocations = getInvocations();
 
   if (passed) {
-    try {
-      assertAdversarialBlock(ir, records, spec.targetedTool, invocations);
-    } catch (err) {
-      passed = false;
-      failureReason = err instanceof AssertionError ? err.message : String(err);
+    if (ir === null) {
+      // Resolver threw — PEP must have enforced block; verify targeted tool was not invoked
+      const hits = invocations.filter((i) => i.tool === spec.targetedTool);
+      if (hits.length > 0) {
+        passed = false;
+        failureReason = `Resolver error treated as allow — "${spec.targetedTool}" was invoked`;
+      }
+    } else {
+      try {
+        assertAdversarialBlock(ir, records, spec.targetedTool, invocations);
+      } catch (err) {
+        passed = false;
+        failureReason = err instanceof AssertionError ? err.message : String(err);
+      }
     }
   }
 
