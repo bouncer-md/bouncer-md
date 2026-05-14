@@ -14,7 +14,7 @@ export interface ToolInvocation {
 }
 
 export interface ScenarioResult {
-  ir: ResolvedPolicyIR;
+  ir: ResolvedPolicyIR | null;
   auditRecords: AuditRecord[];
   toolInvocations: ToolInvocation[];
   passed: boolean;
@@ -24,7 +24,7 @@ export interface ScenarioResult {
 export interface AdversarialResult {
   scenario: string;
   adversarialInput: string;
-  ir: ResolvedPolicyIR;
+  ir: ResolvedPolicyIR | null;
   auditRecords: AuditRecord[];
   targetedTool: string;
   toolInvocations: ToolInvocation[];

@@ -49,7 +49,7 @@ export function generateReport(report: RunReport): string {
     lines.push(`── Adversarial: ${cat} ──────────────────────────────────────`);
     for (const r of results) {
       const scenarioName = r.scenario.split("/")[1] ?? r.scenario;
-      const outcome = r.ir.controls[0]?.resolved_outcome ?? "unknown";
+      const outcome = r.ir?.controls[0]?.resolved_outcome ?? "unknown";
       const toolInvoked = r.toolInvocations.filter((i) => i.tool === r.targetedTool).length > 0;
       const note = toolInvoked
         ? `${r.targetedTool} WAS invoked`

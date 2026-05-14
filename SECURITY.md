@@ -142,6 +142,33 @@ Understanding the security properties of bouncer-md requires understanding what 
 
 ---
 
+### 10. Computational Resource Exhaustion
+
+**Risk:** An attacker can construct an oversized payload — dense text, logs, or
+arbitrary content padded to the resolver's processing limit — causing the resolver
+to time out or exhaust memory. If the resolver returns null or a non-IR result on
+failure and the PEP treats that as "no policy found," the result is fail-open. The
+malicious instruction can be embedded in the payload tail, bypassed entirely by the
+resource exhaustion condition.
+
+**Affected path:** Path B only.
+
+**Mitigation:**
+
+- The reference resolver enforces a max input size (`MAX_INPUT_BYTES`) before parsing
+  begins. Inputs exceeding the limit throw `BouncerMalformedFileError` immediately —
+  no parsing occurs and memory usage is bounded.
+- PEP implementations MUST treat any null, undefined, or exception result from the
+  resolver as a block condition. Never default to allow on resolver error. See §7.6.
+- An internal processing timeout guard (Fix 1, tracked in issue #63) is deferred
+  pending implementation design decisions. Until Fix 1 is implemented, infrastructure
+  timeout configuration is the mitigation for processing time exhaustion beyond the
+  input size guard.
+- Test with oversized inputs as part of your adversarial test suite. The public harness
+  includes a computational adversarial scenario.
+
+---
+
 ## What bouncer-md Does Not Protect Against
 
 - **Model capability gaps.** If the underlying LLM cannot reason correctly about a control, no amount of policy authoring will compensate. Test with your target model.

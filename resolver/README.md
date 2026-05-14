@@ -151,6 +151,21 @@ interface ResolutionLogEntry {
 
 ---
 
+## Processing Limits
+
+The resolver enforces the following limits to prevent computational resource exhaustion attacks (see SECURITY.md Threat Vector 10).
+
+| Limit | Value | Behavior on violation |
+|-------|-------|-----------------------|
+| Max input size (`MAX_INPUT_BYTES`) | 512 KB (512,000 bytes) | Throws `BouncerMalformedFileError` with `reason: "input_too_large"` immediately — no parsing occurs |
+| Processing timeout | Not yet implemented (tracked in issue #63) | Infrastructure-level timeout is the current mitigation |
+
+The size check fires on the raw byte length of the bouncer file content, before YAML frontmatter parsing or Markdown control block parsing begins. A legitimate bouncer file will never approach this limit.
+
+**PEP authors:** catch both `BouncerMalformedFileError` and `BouncerPolicyMismatchError` and fail closed on either. See the Errors section above and §7.6 of SPEC.md.
+
+---
+
 ## File Discovery
 
 Per §10.1 of SPEC.md:
