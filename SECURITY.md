@@ -126,6 +126,22 @@ Understanding the security properties of bouncer-md requires understanding what 
 
 ---
 
+### 9. Fork and Modified Spec Deployment
+
+**Risk:** An implementation built against a modified fork of the spec may claim canonical bouncer-md conformance while having removed safety-critical requirements (deny-by-default, fail-closed behavior, additive-restriction-only). A bouncer file authored against a stripped fork looks identical to one authored against the canonical spec. Downstream consumers have no way to detect the difference without explicit verification.
+
+**Affected path:** Path A and Path B.
+
+**Mitigation:**
+
+- Pin your resolver implementation to a specific tagged release of the canonical spec (e.g. `v0.7`).
+- Verify the pinned version in your CI pipeline against the Section 11.3 conformance tests.
+- Treat any resolver not pinned to a canonical tagged release as unverified.
+- Use the optional `spec` frontmatter anchor (Section 3.3 of the spec) to declare which spec version a file was authored against. If a resolver detects a mismatch, it SHOULD log it.
+- Modified forks are permitted under MIT but MUST NOT claim conformance with the canonical bouncer-md specification. See Section 12.2 of the spec.
+
+---
+
 ### 10. Computational Resource Exhaustion
 
 **Risk:** An attacker can construct an oversized payload — dense text, logs, or
@@ -150,22 +166,6 @@ resource exhaustion condition.
   input size guard.
 - Test with oversized inputs as part of your adversarial test suite. The public harness
   includes a computational adversarial scenario.
-
----
-
-### 9. Fork and Modified Spec Deployment
-
-**Risk:** An implementation built against a modified fork of the spec may claim canonical bouncer-md conformance while having removed safety-critical requirements (deny-by-default, fail-closed behavior, additive-restriction-only). A bouncer file authored against a stripped fork looks identical to one authored against the canonical spec. Downstream consumers have no way to detect the difference without explicit verification.
-
-**Affected path:** Path A and Path B.
-
-**Mitigation:**
-
-- Pin your resolver implementation to a specific tagged release of the canonical spec (e.g. `v0.7`).
-- Verify the pinned version in your CI pipeline against the Section 11.3 conformance tests.
-- Treat any resolver not pinned to a canonical tagged release as unverified.
-- Use the optional `spec` frontmatter anchor (Section 3.3 of the spec) to declare which spec version a file was authored against. If a resolver detects a mismatch, it SHOULD log it.
-- Modified forks are permitted under MIT but MUST NOT claim conformance with the canonical bouncer-md specification. See Section 12.2 of the spec.
 
 ---
 
